@@ -49,7 +49,7 @@
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--body);font-variant-numeric:tabular-nums;}
-  .wrap{max-width:1240px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:20px;}
+  .wrap{max-width:1320px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:20px;}
   [hidden]{display:none !important;}
   main{min-width:0;}
 
@@ -143,8 +143,18 @@
   .seg button:hover{color:var(--ink);}
   .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);}
 
-  table.prod{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:1180px;}
-  table.prod.attar{min-width:1060px;}
+  table.prod{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:1460px;}
+  table.prod.attar{min-width:1320px;}
+  /* product name stays visible while the wide table scrolls */
+  .prod .stick{position:sticky;left:0;z-index:2;background:var(--card);}
+  .prod th.cst{background:var(--cost-bg);color:var(--cost-ink);}
+  .prod td.cst{background:var(--cost-bg);color:var(--cost-ink);font-weight:600;}
+  .prod th.pr{background:var(--rate-bg);color:var(--ink);}
+  .prod td.pr{background:color-mix(in srgb, var(--rate-bg) 55%, transparent);}
+  .prod td.pr input{width:84px;font-weight:600;}
+  .prod td.pct{font-weight:600;color:var(--muted);}
+  .prod td.pct.pos{color:var(--price-ink);}
+  .prod td.pct.neg{color:var(--danger);}
   .prod th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:nowrap;}
   .prod th.l{text-align:left;}
   .prod th.c, .prod td.c{text-align:center;}
@@ -207,9 +217,13 @@
       <div class="row-head">
         <div>
           <h2 id="h-pl">Price list <span class="count" id="plCount"></span></h2>
-          <p class="sub">Final selling price. <span class="tag">Booster</span> and <span class="tag at">Attar booster</span> mean 4 drops of booster oil are added.</p>
+          <p class="sub" id="plSub"></p>
         </div>
         <div class="btns">
+          <div class="seg" id="plMode" role="group" aria-label="Prices shown">
+            <button type="button" data-mode="sell">Selling price</button>
+            <button type="button" data-mode="cost">Cost</button>
+          </div>
           <label class="custom" for="customAttar">Other attar size <span class="unit" data-unit="ml"><input class="rate" id="customAttar" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 10"></span></label>
           <input type="search" class="search" id="plSearch" placeholder="Search product" aria-label="Search products">
           <button type="button" id="copyList">Copy price list</button>
@@ -247,7 +261,7 @@
         <div class="row-head">
           <div>
             <h2 id="h-prod">Perfume cost <span class="count" id="prodCount"></span></h2>
-            <p class="sub">Tick Booster to add 4 drops of booster oil. Bottle and packing use the standard rate for the size; type your own price in a row to change it for that product only, clear it to go back.</p>
+            <p class="sub">Tick Booster to add 4 drops of booster oil. Bottle and packing use the standard rate for the size; type your own price in a row to change it for that product only. Type your <b>profit ₹</b> for each size: profit % and selling price are worked out for you.</p>
           </div>
           <div class="btns">
             <div class="seg" id="pfSeg" role="group" aria-label="Perfume bottle size"></div>
@@ -267,7 +281,7 @@
         <div class="row-head">
           <div>
             <h2 id="h-attar">Attar cost</h2>
-            <p class="sub">Pure oil, no alcohol. Booster, bottle and packing work the same way as in Perfume cost. Oil rates are shared with the Perfume cost table.</p>
+            <p class="sub">Pure oil, no alcohol. Booster, bottle, packing and profit work the same way as in Perfume cost. Oil rates are shared with the Perfume cost table.</p>
           </div>
           <div class="btns">
             <div class="seg" id="atSeg" role="group" aria-label="Attar size"></div>
@@ -356,9 +370,9 @@ const DEFAULTS = {
   boostDrops: 4,                           // drops of booster per bottle, when ticked
   dropsPerMl: 20,                          // 20 drops = 1 ml (1 ml of oil taken as 1 g)
   sizes: [                                 // perfume: standard bottle (K) and packing (L)
-    { ml: 30,  bottle: 50, packing: 9 },
-    { ml: 50,  bottle: 60, packing: 9 },
-    { ml: 100, bottle: 75, packing: 9 }
+    { ml: 30,  bottle: 50, packing: 10 },
+    { ml: 50,  bottle: 60, packing: 10 },
+    { ml: 100, bottle: 75, packing: 10 }
   ],
   attarSizes: [                            // attar: standard bottle and packing
     { ml: 3,  bottle: 0, packing: 0 },
@@ -367,22 +381,23 @@ const DEFAULTS = {
     { ml: 24, bottle: 0, packing: 0 }
   ],
   pfView: 30, atView: 6,                   // size shown in the cost tables
-  perfumes: [                              // oil price (B) for oil qty (C)
-    { name: 'Khamrah Waha',    supplier: 'Al-Shahab',         oilPrice: 2125, oilQty: 250 },
-    { name: 'Gucchi Flora',    supplier: 'Al-Shahab',         oilPrice: 1350, oilQty: 250 },
-    { name: 'Al-Tahba',        supplier: 'Al-Shahab',         oilPrice: 2375, oilQty: 250 },
-    { name: 'Dubai Gold',      supplier: 'Al-Shahab',         oilPrice: 1200, oilQty: 250 },
-    { name: 'Hawas',           supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250 },
-    { name: 'White Oud',       supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250 },
-    { name: 'Shanaya',         supplier: 'Al-Shahab',         oilPrice: 1700, oilQty: 250 },
-    { name: 'Imperial Valley', supplier: 'Al-Shahab · Trial', oilPrice: 2375, oilQty: 250 }
+  plMode: 'sell',                          // price list shows selling price ('sell') or cost ('cost')
+  perfumes: [                              // oil price (B) for oil qty (C); profit ₹ per perfume size
+    { name: 'Khamrah Waha',    supplier: 'Al-Shahab',         oilPrice: 2125, oilQty: 250, profitOv: { 30: 108, 50: 158, 100: 275 } },
+    { name: 'Gucchi Flora',    supplier: 'Al-Shahab',         oilPrice: 1350, oilQty: 250, profitOv: { 30: 105, 50: 122, 100: 208 } },
+    { name: 'Al-Tahba',        supplier: 'Al-Shahab',         oilPrice: 2375, oilQty: 250, profitOv: { 30: 115, 50: 169, 100: 298 } },
+    { name: 'Dubai Gold',      supplier: 'Al-Shahab',         oilPrice: 1200, oilQty: 250, profitOv: { 30: 109, 50: 115, 100: 190 } },
+    { name: 'Hawas',           supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250, profitOv: { 30: 108, 50: 135, 100: 229 } },
+    { name: 'White Oud',       supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250, profitOv: { 30: 109, 50: 135, 100: 229 } },
+    { name: 'Shanaya',         supplier: 'Al-Shahab',         oilPrice: 1700, oilQty: 250, profitOv: { 30: 112, 50: 138, 100: 236 } },
+    { name: 'Imperial Valley', supplier: 'Al-Shahab · Trial', oilPrice: 2375, oilQty: 250, profitOv: { 30: 115, 50: 169, 100: 298 } }
   ]
 };
-/* Each product also keeps: booster / atBooster (ticks), and its own bottle & packing prices
-   per size when you type them: bottleOv, packOv (perfume) and atBottleOv, atPackOv (attar), e.g. { "30": 55 }. */
+/* Each product also keeps: booster / atBooster (ticks); its own bottle & packing prices per size when typed:
+   bottleOv, packOv (perfume), atBottleOv, atPackOv (attar); and profit ₹ per size: profitOv, atProfitOv. e.g. { "30": 108 } */
 function newProduct(o) {
   return Object.assign({ name: '', supplier: '', oilPrice: 0, oilQty: 250, booster: false, atBooster: false,
-    bottleOv: {}, packOv: {}, atBottleOv: {}, atPackOv: {} }, o || {});
+    bottleOv: {}, packOv: {}, atBottleOv: {}, atPackOv: {}, profitOv: {}, atProfitOv: {} }, o || {});
 }
 
 /*CALC-START*/
@@ -406,8 +421,11 @@ function perfumePrice(p, size, c) {
   const ob = own(p.bottleOv, size.ml), op = own(p.packOv, size.ml);
   const bottle = ob === null ? size.bottle : ob;                                           // K
   const packing = op === null ? size.packing : op;                                         // L
-  const total = oilCost + alcCost + boostCost + bottle + packing;
-  return { oilPerMl, alcPerMl, oilMl, alcMl, oilCost, alcCost, boostMl, boostCost, bottle, packing, ownBottle: ob !== null, ownPacking: op !== null, total };
+  const total = oilCost + alcCost + boostCost + bottle + packing;                          // cost (sheet M/N/O)
+  const profit = own(p.profitOv, size.ml) || 0;                                            // typed by you
+  const pct = total ? profit / total * 100 : null;                                         // profit % on cost
+  return { oilPerMl, alcPerMl, oilMl, alcMl, oilCost, alcCost, boostMl, boostCost, bottle, packing, ownBottle: ob !== null, ownPacking: op !== null,
+           total, profit, pct, sell: total + profit };
 }
 /* Attar: pure oil, plus booster, bottle and packing in the same way. */
 function attarPrice(p, size, c) {
@@ -419,7 +437,10 @@ function attarPrice(p, size, c) {
   const bottle = ob === null ? (+size.bottle || 0) : ob;
   const packing = op === null ? (+size.packing || 0) : op;
   const total = oilCost + boostCost + bottle + packing;
-  return { oilPerMl, oilMl, oilCost, boostMl, boostCost, bottle, packing, ownBottle: ob !== null, ownPacking: op !== null, total };
+  const profit = own(p.atProfitOv, size.ml) || 0;
+  const pct = total ? profit / total * 100 : null;
+  return { oilPerMl, oilMl, oilCost, boostMl, boostCost, bottle, packing, ownBottle: ob !== null, ownPacking: op !== null,
+           total, profit, pct, sell: total + profit };
 }
 /*CALC-END*/
 
