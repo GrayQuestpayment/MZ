@@ -131,17 +131,30 @@
   .form-msg{margin:8px 0 0;font-size:13px;color:var(--danger);}
   .form-msg:empty{display:none;}
 
-  table.prod{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:760px;}
-  .prod th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:8px;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:nowrap;}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px;background:var(--paper);}
+  .seg button{border:0;background:transparent;padding:6px 12px;font-size:13.5px;font-weight:600;color:var(--muted);border-radius:6px;}
+  .seg button:hover{color:var(--ink);}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);}
+
+  table.prod{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:1100px;}
+  table.prod.attar{min-width:760px;}
+  .prod th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:8px 7px;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:nowrap;}
   .prod th.l{text-align:left;}
   .prod th.c, .prod td.c{text-align:center;}
   .prod th small{display:block;font-weight:500;font-size:11px;}
-  .prod td{padding:6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle;white-space:nowrap;}
-  .prod td.namec{min-width:180px;text-align:left;}
-  .prod td.supc{min-width:150px;text-align:left;}
+  .prod td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle;white-space:nowrap;}
+  .prod td.namec{min-width:150px;text-align:left;}
+  .prod td.supc{min-width:140px;text-align:left;}
   .prod td.supc input{font-size:13.5px;}
-  .prod td.num input{width:100px;}
-  .prod td.perml{color:var(--muted);}
+  .prod td.num input{width:86px;}
+  .prod td.l{text-align:left;font-weight:500;}
+  .prod td.v small{display:block;color:var(--muted);font-size:11.5px;}
+  .prod td.cost{background:color-mix(in srgb, var(--cost-bg) 65%, transparent);}
+  .prod td.off{color:var(--muted);}
+  .prod th.tot{background:var(--price-bg);color:var(--price-ink);}
+  .prod td.tot{background:var(--price-bg);color:var(--price-ink);font-weight:700;font-size:15px;}
+  .prod.attar th.tot{background:var(--attar-bg);color:var(--attar-ink);}
+  .prod.attar td.tot{background:var(--attar-bg);color:var(--attar-ink);}
   .prod tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
   .prod tr.sel td.namec input{border-color:var(--accent);}
 
@@ -151,31 +164,16 @@
   .sizes td{padding:3px;}
   .sizes td:last-child{width:30px;text-align:right;}
 
-  .bd-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  select{font:inherit;font-size:15px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:100%;}
-  .bd-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start;}
-  table.bd{width:100%;border-collapse:collapse;font-size:14px;min-width:400px;}
-  .bd caption{text-align:left;font-weight:600;font-size:14px;padding:0 0 6px;}
-  .bd th,.bd td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;}
-  .bd th{font-size:12px;color:var(--muted);font-weight:600;}
-  .bd td.l, .bd th.l{text-align:left;white-space:normal;}
-  .bd td.l small{color:var(--muted);font-size:12px;margin-left:6px;}
-  .bd tr.cost td{background:var(--cost-bg);}
-  .bd tr.cost td.l{color:var(--cost-ink);font-weight:500;}
-  .bd tr.total td{background:var(--price-bg);color:var(--price-ink);font-weight:600;font-size:15px;border-bottom-color:var(--price-line);}
-  .bd.attar tr.total td{background:var(--attar-bg);color:var(--attar-ink);border-bottom-color:var(--attar-line);}
-  .bd tr.off td{color:var(--muted);}
-  .bd .xl{display:inline-block;font-size:10.5px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-right:6px;min-width:18px;text-align:center;}
 
   .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--paper);border-radius:10px;padding:10px 14px;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:calc(100% - 32px);z-index:5;}
   .toast button{background:transparent;color:var(--paper);border-color:color-mix(in srgb, var(--paper) 40%, transparent);padding:4px 10px;}
 
-  @media (max-width:1060px){ .rates{grid-template-columns:repeat(2,minmax(0,1fr));} .bd-grid{grid-template-columns:minmax(0,1fr);} }
+  @media (max-width:1060px){ .rates{grid-template-columns:repeat(2,minmax(0,1fr));} }
   @media (max-width:900px){ .addform{grid-template-columns:repeat(2,minmax(0,1fr));} .af-name,.af-sup,.af-btn{grid-column:1 / -1;} }
   @media (max-width:700px){ .rates{grid-template-columns:minmax(0,1fr);} }
   @media (max-width:520px){
     .field{grid-template-columns:1fr 124px;}
-    input.rate, input.name, input.search, select{font-size:16px;}
+    input.rate, input.name, input.search{font-size:16px;}
     input.search{min-width:0;width:100%;}
     nav.tabs{width:100%;} nav.tabs a{flex:1;text-align:center;}
   }
@@ -216,7 +214,7 @@
           <tbody id="plBody"></tbody>
         </table>
       </div>
-      <p class="note" style="margin:12px 0 0">To add a product or change a rate, open <a href="#calculations">Calculations</a>. Click a product name to see how its price is worked out.</p>
+      <p class="note" style="margin:12px 0 0">To add a product or change a rate, open <a href="#calculations">Calculations</a>. Click a product name to see its cost.</p>
     </section>
   </main>
 
@@ -241,15 +239,37 @@
       <section class="card" aria-labelledby="h-prod">
         <div class="row-head">
           <div>
-            <h2 id="h-prod">Products &amp; oil rates <span class="count" id="prodCount"></span></h2>
-            <p class="sub">Edit any rate here. Tick Booster to add 4 drops of booster oil to that product&rsquo;s perfume.</p>
+            <h2 id="h-prod">Perfume cost <span class="count" id="prodCount"></span></h2>
+            <p class="sub">Edit oil rates here. Tick Booster to add 4 drops of booster oil to that product.</p>
           </div>
-          <input type="search" class="search" id="prodSearch" placeholder="Search product or supplier" aria-label="Search products and suppliers">
+          <div class="btns">
+            <div class="seg" id="pfSeg" role="group" aria-label="Perfume bottle size"></div>
+            <input type="search" class="search" id="prodSearch" placeholder="Search product or supplier" aria-label="Search products and suppliers">
+          </div>
         </div>
         <div class="scroll">
           <table class="prod">
-            <thead><tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th><th class="c">Booster</th><th>Oil per ml</th><th></th></tr></thead>
+            <thead id="prodHead"></thead>
             <tbody id="prodBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h-attar">
+        <div class="row-head">
+          <div>
+            <h2 id="h-attar">Attar cost</h2>
+            <p class="sub">Pure oil: total cost = oil ml × oil per ml. Oil rates come from the Perfume cost table above.</p>
+          </div>
+          <div class="btns">
+            <div class="seg" id="atSeg" role="group" aria-label="Attar size"></div>
+            <label class="custom" for="atOther">Other <span class="unit" data-unit="ml"><input class="rate" id="atOther" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 10"></span></label>
+          </div>
+        </div>
+        <div class="scroll">
+          <table class="prod attar">
+            <thead id="attarHead"></thead>
+            <tbody id="attarBody"></tbody>
           </table>
         </div>
       </section>
@@ -308,20 +328,6 @@
         </section>
       </div>
 
-      <section class="card" aria-labelledby="h-bd">
-        <div class="bd-head">
-          <div>
-            <h2 id="h-bd">Cost breakdown</h2>
-            <p class="sub" style="margin:0">Same columns as your sheet, so you can check each figure.</p>
-          </div>
-          <label class="note" for="selProduct" style="display:flex;gap:8px;align-items:center">Product <select id="selProduct"></select></label>
-        </div>
-        <div class="bd-grid">
-          <div class="scroll"><table class="bd" id="bdPerfume"></table></div>
-          <div class="scroll"><table class="bd attar" id="bdAttar"></table></div>
-        </div>
-      </section>
-
       <p class="note">Your rates and products are saved in this browser only. <button type="button" id="resetAll">Reset to starting rates</button></p>
     </div>
   </main>
@@ -346,6 +352,7 @@ const DEFAULTS = {
     { ml: 100, bottle: 75, packing: 9 }
   ],
   attarSizes: [3, 6, 12, 24],              // attar ml, pure oil
+  pfView: 30, atView: 6,                   // size shown in the cost tables
   perfumes: [                              // oil price (B) for oil qty (C)
     { name: 'Khamrah Waha',    supplier: 'Al-Shahab',         oilPrice: 2125, oilQty: 250, booster: false },
     { name: 'Gucchi Flora',    supplier: 'Al-Shahab',         oilPrice: 1350, oilQty: 250, booster: false },
@@ -403,6 +410,8 @@ function upgrade(s, fromV1) {
   if (s.boostPackPrice != null) { out.boostPackPrice = s.boostPackPrice; out.boostPackQty = s.boostPackQty; }
   if (s.boostDrops != null) out.boostDrops = s.boostDrops;
   if (s.dropsPerMl != null) out.dropsPerMl = s.dropsPerMl;
+  if (s.pfView != null) out.pfView = s.pfView;
+  if (s.atView != null) out.atView = s.atView;
   out.sizes = s.sizes.map(z => ({ ml: num(z.ml), bottle: num(z.bottle), packing: num(z.packing) }));
   if (Array.isArray(s.attarSizes) && s.attarSizes.length) out.attarSizes = s.attarSizes.map(z => typeof z === 'number' ? z : num(z.ml));
   out.perfumes = s.perfumes.map(p => ({ name: p.name || '', supplier: p.supplier || '', oilPrice: num(p.oilPrice), oilQty: num(p.oilQty), booster: !!p.booster }));
@@ -437,7 +446,12 @@ function showPage() {
   });
   $('pageIntro').textContent = PAGES[name];
 }
-window.addEventListener('hashchange', () => { showPage(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => {
+  showPage();
+  const row = scrollToRow != null ? document.querySelector('#prodBody tr[data-row="' + scrollToRow + '"]') : null;
+  if (row) row.scrollIntoView({ block: 'center' }); else window.scrollTo(0, 0);
+  scrollToRow = null;
+});
 
 /* ---------- page 1 ---------- */
 function attarCols() {
@@ -464,27 +478,67 @@ function renderPriceList() {
   $('plCount').textContent = q ? rows.length + ' of ' + S.perfumes.length : S.perfumes.length + ' product' + (S.perfumes.length === 1 ? '' : 's');
 }
 
-/* ---------- page 2: products ---------- */
+/* ---------- page 2: size switches ---------- */
+function viewSize() { return S.sizes.find(z => z.ml === S.pfView) || S.sizes[0] || null; }
+function attarViewMl() {
+  const o = num($('atOther').value);
+  if (o > 0) return o;
+  return S.attarSizes.indexOf(S.atView) >= 0 ? S.atView : (S.attarSizes[0] || 0);
+}
+function renderSeg() {
+  const z = viewSize();
+  $('pfSeg').innerHTML = S.sizes.map(s => '<button type="button" data-ml="' + s.ml + '" aria-pressed="' + (!!z && s.ml === z.ml) + '">' + qty.format(s.ml) + ' ml</button>').join('');
+  const other = num($('atOther').value) > 0, am = attarViewMl();
+  $('atSeg').innerHTML = S.attarSizes.map(ml => '<button type="button" data-ml="' + ml + '" aria-pressed="' + (!other && ml === am) + '">' + qty.format(ml) + ' ml</button>').join('');
+}
+
+/* ---------- page 2: perfume cost table ---------- */
+function renderProdHead() {
+  const z = viewSize(), ml = z ? qty.format(z.ml) : '';
+  $('prodHead').innerHTML = '<tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
+    '<th>Oil<small>30% = ' + qty.format((z ? z.ml : 0) * PERFUME_OIL) + ' ml</small></th><th>Alcohol<small>70% = ' + qty.format((z ? z.ml : 0) * PERFUME_ALCOHOL) + ' ml</small></th>' +
+    '<th class="c">Booster</th><th>Booster qty</th><th>Booster price</th><th>Bottle price</th><th>Packing price</th>' +
+    '<th class="tot">Total cost<small>' + ml + ' ml</small></th><th></th></tr>';
+}
 function renderProducts() {
-  if (!S.perfumes.length) { $('prodBody').innerHTML = '<tr><td class="empty" colspan="7">No products yet. Add one with the form above.</td></tr>'; $('prodCount').textContent = ''; return; }
+  if (!S.perfumes.length) { $('prodBody').innerHTML = '<tr><td class="empty" colspan="13">No products yet. Add one with the form above.</td></tr>'; $('prodCount').textContent = ''; return; }
   $('prodBody').innerHTML = S.perfumes.map((p, i) =>
     '<tr data-row="' + i + '"' + (i === sel ? ' class="sel"' : '') + '>' +
     '<td class="namec"><input class="name" id="pf-name-' + i + '" data-i="' + i + '" data-k="name" type="text" value="' + esc(p.name) + '" placeholder="Product name" aria-label="Product name"></td>' +
     '<td class="supc"><input class="name" id="pf-supplier-' + i + '" data-i="' + i + '" data-k="supplier" type="text" value="' + esc(p.supplier) + '" placeholder="Supplier" aria-label="Supplier or note"></td>' +
     '<td class="num"><input class="rate" id="pf-oilPrice-' + i + '" data-i="' + i + '" data-k="oilPrice" type="number" inputmode="decimal" step="any" min="0" value="' + p.oilPrice + '" aria-label="Oil price"></td>' +
     '<td class="num"><input class="rate" id="pf-oilQty-' + i + '" data-i="' + i + '" data-k="oilQty" type="number" inputmode="decimal" step="any" min="0" value="' + p.oilQty + '" aria-label="Oil quantity in g or ml"></td>' +
+    '<td class="v cost" id="pc-oil-' + i + '"></td>' +
+    '<td class="v cost" id="pc-alc-' + i + '"></td>' +
     '<td class="c"><input type="checkbox" id="pf-booster-' + i + '" data-i="' + i + '" data-k="booster"' + (p.booster ? ' checked' : '') + ' aria-label="Add booster to ' + esc(p.name || 'this product') + '"></td>' +
-    '<td class="perml" id="pf-perml-' + i + '"></td>' +
+    '<td id="pc-bq-' + i + '"></td>' +
+    '<td id="pc-bp-' + i + '"></td>' +
+    '<td id="pc-bottle-' + i + '"></td>' +
+    '<td id="pc-pack-' + i + '"></td>' +
+    '<td class="tot" id="pc-total-' + i + '"></td>' +
     '<td><button type="button" class="icon" data-del="' + i + '" aria-label="Delete ' + esc(p.name || 'product') + '" title="Delete">×</button></td>' +
     '</tr>').join('');
-  filterProducts();
 }
+
+/* ---------- page 2: attar cost table ---------- */
+function renderAttarHead() {
+  const ml = attarViewMl();
+  $('attarHead').innerHTML = '<tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
+    '<th>Oil per ml</th><th>Oil used</th><th class="tot">Total cost<small>' + qty.format(ml) + ' ml</small></th></tr>';
+}
+function renderAttar() {
+  $('attarBody').innerHTML = S.perfumes.length ? S.perfumes.map((p, i) =>
+    '<tr data-row="' + i + '"><td class="l" id="at-name-' + i + '"></td><td class="l note" id="at-sup-' + i + '"></td><td id="at-price-' + i + '"></td><td id="at-qty-' + i + '"></td>' +
+    '<td id="at-perml-' + i + '"></td><td id="at-used-' + i + '"></td><td class="tot" id="at-total-' + i + '"></td></tr>').join('')
+    : '<tr><td class="empty" colspan="7">No products yet.</td></tr>';
+}
+
 function filterProducts() {
   const q = low($('prodSearch').value); let shown = 0;
   S.perfumes.forEach((p, i) => {
-    const tr = document.querySelector('#prodBody tr[data-row="' + i + '"]'); if (!tr) return;
     const hit = !q || low(p.name).indexOf(q) >= 0 || low(p.supplier).indexOf(q) >= 0;
-    tr.hidden = !hit; if (hit) shown++;
+    document.querySelectorAll('#prodBody tr[data-row="' + i + '"], #attarBody tr[data-row="' + i + '"]').forEach(tr => { tr.hidden = !hit; });
+    if (hit) shown++;
   });
   $('prodCount').textContent = q ? shown + ' of ' + S.perfumes.length : S.perfumes.length + ' product' + (S.perfumes.length === 1 ? '' : 's');
 }
@@ -516,44 +570,37 @@ function rateLabels() {
   $('boostResult').innerHTML = qty.format(S.boostDrops) + ' drops = ' + qty.format(b.ml) + ' ml × ' + rupee(b.perG) + ' = <b>' + rupee(b.cost) + ' per bottle</b>, for every perfume size';
 }
 
-/* ---------- page 2: breakdown ---------- */
-function renderSelect() {
-  $('selProduct').innerHTML = S.perfumes.map((p, i) => '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + esc(p.name || 'Product ' + (i + 1)) + '</option>').join('');
-  $('selProduct').disabled = !S.perfumes.length;
-}
-function renderBreakdown() {
-  const p = S.perfumes[sel];
-  if (!p) { $('bdPerfume').innerHTML = '<tbody><tr><td class="l">Add a product to see its breakdown.</td></tr></tbody>'; $('bdAttar').innerHTML = ''; return; }
-  const r = S.sizes.map(z => perfumePrice(p, z, S));
-  const row = (cls, xl, label, note, cells) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="l"><span class="xl">' + xl + '</span>' + label + (note ? '<small>' + note + '</small>' : '') + '</td>' + cells.join('') + '</tr>';
-  const b = boostPerBottle();
-  $('bdPerfume').innerHTML = '<caption>Perfume</caption><thead><tr><th class="l"></th>' + S.sizes.map(z => '<th>' + qty.format(z.ml) + ' ml</th>').join('') + '</tr></thead><tbody>' +
-    row('', 'D', 'Oil per ml', rupee(p.oilPrice) + ' ÷ ' + qty.format(p.oilQty), r.map(x => '<td>' + rupee(x.oilPerMl) + '</td>')) +
-    row('', 'F', 'Alcohol per ml', rupee(S.alcPackPrice) + ' ÷ ' + qty.format(S.alcPackQty * 1000) + ' ml', r.map(x => '<td>' + rupee(x.alcPerMl) + '</td>')) +
-    row('', 'G', 'Oil', '30%', r.map(x => '<td>' + qty.format(x.oilMl) + ' ml</td>')) +
-    row('', 'H', 'Alcohol', '70%', r.map(x => '<td>' + qty.format(x.alcMl) + ' ml</td>')) +
-    row('cost', 'I', 'Total oil', 'G × D', r.map(x => '<td>' + rupee(x.oilCost) + '</td>')) +
-    row('cost', 'J', 'Mix – alcohol', 'H × F', r.map(x => '<td>' + rupee(x.alcCost) + '</td>')) +
-    row(p.booster ? 'cost' : 'off', '+', 'Booster', p.booster ? qty.format(S.boostDrops) + ' drops = ' + qty.format(b.ml) + ' ml × ' + rupee(b.perG) + '/g' : 'not ticked for this product', r.map(x => '<td>' + (p.booster ? rupee(x.boostCost) : '–') + '</td>')) +
-    row('', 'K', 'Bottle', '', r.map(x => '<td>' + rupee(x.bottle) + '</td>')) +
-    row('', 'L', 'Packing', '', r.map(x => '<td>' + rupee(x.packing) + '</td>')) +
-    row('total', '=', 'Selling price', '', r.map(x => '<td>' + rupee(x.total) + '</td>')) + '</tbody>';
-  const a = attarCols().map(z => Object.assign({ custom: z.custom }, attarPrice(p, z.ml)));
-  $('bdAttar').innerHTML = '<caption>Attar (pure oil)</caption><thead><tr><th class="l"></th>' + a.map(x => '<th>' + qty.format(x.oilMl) + ' ml' + (x.custom ? '*' : '') + '</th>').join('') + '</tr></thead><tbody>' +
-    row('', 'D', 'Oil per ml', rupee(p.oilPrice) + ' ÷ ' + qty.format(p.oilQty), a.map(x => '<td>' + rupee(x.oilPerMl) + '</td>')) +
-    row('', 'G', 'Oil', '100%', a.map(x => '<td>' + qty.format(x.oilMl) + ' ml</td>')) +
-    row('total', '=', 'Selling price', 'G × D', a.map(x => '<td>' + rupee(x.total) + '</td>')) + '</tbody>';
-}
-
 /* ---------- refresh ---------- */
-function update() {
-  S.perfumes.forEach((p, i) => { const c = $('pf-perml-' + i); if (c) c.textContent = p.oilQty ? rupee(p.oilPrice / p.oilQty) : '–'; });
+function setText(id, html) { const el = $(id); if (el) el.innerHTML = html; }
+function update() {   // computed cells only, so typing keeps focus
+  const z = viewSize(), aml = attarViewMl();
+  S.perfumes.forEach((p, i) => {
+    if (z) {
+      const r = perfumePrice(p, z, S);
+      setText('pc-oil-' + i, rupee(r.oilCost) + '<small>' + qty.format(r.oilMl) + ' ml × ' + rupee(r.oilPerMl) + '</small>');
+      setText('pc-alc-' + i, rupee(r.alcCost) + '<small>' + qty.format(r.alcMl) + ' ml</small>');
+      setText('pc-bq-' + i, p.booster ? qty.format(S.boostDrops) + ' drops' : '–');
+      setText('pc-bp-' + i, p.booster ? rupee(r.boostCost) : '–');
+      setText('pc-bottle-' + i, rupee(r.bottle));
+      setText('pc-pack-' + i, rupee(r.packing));
+      setText('pc-total-' + i, rupee(r.total));
+      ['pc-bq-', 'pc-bp-'].forEach(k => { const el = $(k + i); if (el) el.className = p.booster ? 'cost' : 'off'; });
+    }
+    const a = attarPrice(p, aml);
+    setText('at-name-' + i, esc(p.name || 'Unnamed'));
+    setText('at-sup-' + i, esc(p.supplier));
+    setText('at-price-' + i, rupee(p.oilPrice));
+    setText('at-qty-' + i, qty.format(p.oilQty));
+    setText('at-perml-' + i, rupee(a.oilPerMl));
+    setText('at-used-' + i, qty.format(aml) + ' ml');
+    setText('at-total-' + i, rupee(a.total));
+  });
   document.querySelectorAll('#prodBody tr[data-row]').forEach(tr => tr.classList.toggle('sel', +tr.dataset.row === sel));
-  renderPriceList(); renderBreakdown();
+  renderPriceList();
 }
 function renderAll() {
   if (sel >= S.perfumes.length) sel = Math.max(0, S.perfumes.length - 1);
-  renderRates(); renderProducts(); renderSelect(); update();
+  renderRates(); renderSeg(); renderProdHead(); renderProducts(); renderAttarHead(); renderAttar(); filterProducts(); update();
 }
 
 /* ---------- toast ---------- */
@@ -581,11 +628,13 @@ async function copyList() {
 
 /* ---------- events: page 1 ---------- */
 $('plSearch').addEventListener('input', renderPriceList);
-$('customAttar').addEventListener('input', () => { renderPriceList(); renderBreakdown(); });
+$('customAttar').addEventListener('input', renderPriceList);
 $('copyList').addEventListener('click', copyList);
+let scrollToRow = null;
 $('plBody').addEventListener('click', e => {
   const b = e.target.closest('[data-open]'); if (!b) return;
-  sel = +b.dataset.open; renderSelect(); update(); location.hash = 'calculations';
+  sel = +b.dataset.open; $('prodSearch').value = ''; filterProducts(); update();
+  scrollToRow = sel; location.hash = 'calculations';
 });
 
 /* ---------- events: page 2 ---------- */
@@ -599,7 +648,11 @@ function onRates() {
 
 $('sizes-body').addEventListener('input', e => {
   const t = e.target; if (!t.dataset.k) return;
-  S.sizes[+t.dataset.i][t.dataset.k] = num(t.value); save(); update();
+  const z = S.sizes[+t.dataset.i], v = num(t.value);
+  if (t.dataset.k === 'ml' && z.ml === S.pfView) S.pfView = v;
+  z[t.dataset.k] = v; save();
+  if (t.dataset.k === 'ml') { renderSeg(); renderProdHead(); }
+  update();
 });
 $('sizes-body').addEventListener('click', e => {
   const b = e.target.closest('[data-delsize]'); if (!b) return;
@@ -615,8 +668,21 @@ $('addPfSize').addEventListener('click', () => {
 });
 $('attar-body').addEventListener('input', e => {
   const t = e.target; if (t.dataset.i == null) return;
-  S.attarSizes[+t.dataset.i] = num(t.value); save(); update();
+  const i = +t.dataset.i, v = num(t.value);
+  if (S.attarSizes[i] === S.atView) S.atView = v;
+  S.attarSizes[i] = v; save(); renderSeg(); renderAttarHead(); update();
 });
+
+/* size switches */
+$('pfSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-ml]'); if (!b) return;
+  S.pfView = +b.dataset.ml; save(); renderSeg(); renderProdHead(); update();
+});
+$('atSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-ml]'); if (!b) return;
+  S.atView = +b.dataset.ml; $('atOther').value = ''; save(); renderSeg(); renderAttarHead(); update();
+});
+$('atOther').addEventListener('input', () => { renderSeg(); renderAttarHead(); update(); });
 $('attar-body').addEventListener('click', e => {
   const b = e.target.closest('[data-delattar]'); if (!b) return;
   const i = +b.dataset.delattar, removed = S.attarSizes.splice(i, 1)[0];
@@ -632,7 +698,7 @@ $('addAtSize').addEventListener('click', () => {
 $('prodBody').addEventListener('input', e => {
   const t = e.target, k = t.dataset.k; if (!k) return;
   const p = S.perfumes[+t.dataset.i];
-  if (k === 'name') { p.name = t.value; renderSelect(); }
+  if (k === 'name') { p.name = t.value; }
   else if (k === 'supplier') { p.supplier = t.value; }
   else if (k === 'booster') { p.booster = t.checked; }
   else { p[k] = num(t.value); }
@@ -644,7 +710,7 @@ $('prodBody').addEventListener('change', e => {
 });
 $('prodBody').addEventListener('focusin', e => {
   const tr = e.target.closest('tr[data-row]'); if (!tr) return;
-  if (+tr.dataset.row !== sel) { sel = +tr.dataset.row; $('selProduct').value = String(sel); update(); }
+  if (+tr.dataset.row !== sel) { sel = +tr.dataset.row; update(); }
 });
 $('prodBody').addEventListener('click', e => {
   const b = e.target.closest('[data-del]'); if (!b) return;
@@ -653,7 +719,6 @@ $('prodBody').addEventListener('click', e => {
   toast('Deleted ' + (removed.name || 'product') + '.', () => { S.perfumes.splice(i, 0, removed); sel = i; save(); renderAll(); });
 });
 $('prodSearch').addEventListener('input', filterProducts);
-$('selProduct').addEventListener('change', e => { sel = +e.target.value; update(); });
 
 $('addForm').addEventListener('submit', e => {
   e.preventDefault();
