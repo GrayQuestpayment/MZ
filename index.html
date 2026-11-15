@@ -155,6 +155,30 @@
   .prod td.pct{font-weight:600;color:var(--muted);}
   .prod td.pct.pos{color:var(--price-ink);}
   .prod td.pct.neg{color:var(--danger);}
+  /* Total cost, Profit ₹, Profit % and Selling price stay pinned on the right on wider screens */
+  .prod .w-cost{width:100px;min-width:100px;max-width:100px;}
+  .prod .w-prof{width:104px;min-width:104px;max-width:104px;}
+  .prod .w-pct{width:76px;min-width:76px;max-width:76px;}
+  .prod .w-sell{width:110px;min-width:110px;max-width:110px;}
+  .prod .w-del{width:38px;min-width:38px;max-width:38px;}
+  @media (min-width:900px){
+    .prod .pin{position:sticky;z-index:2;}
+    .prod td.pin.pr, .prod td.pin.pct, .prod .pin.w-del{background:var(--card);}
+    .prod th.pin.pr{background:var(--rate-bg);}
+    .prod th.pin.w-pct{background:var(--card);}
+    .prod .pin.w-cost{box-shadow:-8px 0 10px -8px rgba(0,0,0,.25);}
+    .prod:not(.attar) .w-del{right:0;}
+    .prod:not(.attar) .w-sell{right:38px;}
+    .prod:not(.attar) .w-pct{right:148px;}
+    .prod:not(.attar) .w-prof{right:224px;}
+    .prod:not(.attar) .w-cost{right:328px;}
+    .prod.attar .w-sell{right:0;}
+    .prod.attar .w-pct{right:110px;}
+    .prod.attar .w-prof{right:186px;}
+    .prod.attar .w-cost{right:290px;}
+  }
+  .prod td.pr input{width:88px;}
+  .version{font-size:12px;color:var(--muted);margin:0;}
   .prod th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:nowrap;}
   .prod th.l{text-align:left;}
   .prod th.c, .prod td.c{text-align:center;}
@@ -268,7 +292,7 @@
             <input type="search" class="search" id="prodSearch" placeholder="Search product or supplier" aria-label="Search products and suppliers">
           </div>
         </div>
-        <div class="legend"><span><i style="border:1px dashed var(--rate-line)"></i>standard rate</span><span><i style="background:var(--rate-bg);border:1px solid var(--rate-focus)"></i>your own price</span></div>
+        <div class="legend"><span><i style="border:1px dashed var(--rate-line)"></i>standard rate</span><span><i style="background:var(--rate-bg);border:1px solid var(--rate-focus)"></i>your own price</span><span>&harr; scroll the table sideways for booster, bottle and packing</span></div>
         <div class="scroll">
           <table class="prod">
             <thead id="prodHead"></thead>
@@ -288,7 +312,7 @@
             <label class="custom" for="atOther">Other <span class="unit" data-unit="ml"><input class="rate" id="atOther" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 10"></span></label>
           </div>
         </div>
-        <div class="legend"><span><i style="border:1px dashed var(--rate-line)"></i>standard rate</span><span><i style="background:var(--rate-bg);border:1px solid var(--rate-focus)"></i>your own price</span></div>
+        <div class="legend"><span><i style="border:1px dashed var(--rate-line)"></i>standard rate</span><span><i style="background:var(--rate-bg);border:1px solid var(--rate-focus)"></i>your own price</span><span>&harr; scroll the table sideways for booster, bottle and packing</span></div>
         <div class="scroll">
           <table class="prod attar">
             <thead id="attarHead"></thead>
@@ -355,6 +379,8 @@
     </div>
   </main>
 </div>
+
+<p class="version" style="max-width:1320px;margin:-28px auto 24px;padding:0 16px">Version 16-Nov-2026 · with profit columns</p>
 
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button type="button" id="toastBtn" hidden>Undo</button></div>
 
@@ -447,8 +473,8 @@ function attarPrice(p, size, c) {
 const $ = id => document.getElementById(id);
 const inr = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const qty = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
-const KEY = 'perfume-price-calculator-v5';
-const OLD_KEYS = ['perfume-price-calculator-v4', 'perfume-price-calculator-v3', 'perfume-price-calculator-v2', 'perfume-price-calculator-v1'];
+const KEY = 'perfume-price-calculator-v6';
+const OLD_KEYS = ['perfume-price-calculator-v5', 'perfume-price-calculator-v4', 'perfume-price-calculator-v3', 'perfume-price-calculator-v2', 'perfume-price-calculator-v1'];
 let S, sel = 0, undo = null, toastTimer = null;
 
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -460,31 +486,39 @@ function valid(s) { return s && Array.isArray(s.sizes) && Array.isArray(s.perfum
 function fresh() { const s = clone(DEFAULTS); s.perfumes = s.perfumes.map(p => newProduct(p)); return s; }
 
 /* ---------- saving, and keeping what earlier versions saved ---------- */
-function upgrade(s, fromV1) {
+function upgrade(s, src) {          // src: 'current', 'old' (earlier version) or 'v1'
+  const fromV1 = src === 'v1';
   const out = fresh();
   if (s.alcPackPrice != null) { out.alcPackPrice = s.alcPackPrice; out.alcPackQty = s.alcPackQty; }
   else if (s.alcoholPerLitre != null) { out.alcPackPrice = s.alcoholPerLitre; out.alcPackQty = 1; }
-  ['boostPackPrice', 'boostPackQty', 'boostDrops', 'dropsPerMl', 'pfView', 'atView'].forEach(k => { if (s[k] != null) out[k] = s[k]; });
+  ['boostPackPrice', 'boostPackQty', 'boostDrops', 'dropsPerMl', 'pfView', 'atView', 'plMode'].forEach(k => { if (s[k] != null) out[k] = s[k]; });
   out.sizes = s.sizes.map(z => ({ ml: num(z.ml), bottle: num(z.bottle), packing: num(z.packing) }));
   if (Array.isArray(s.attarSizes) && s.attarSizes.length) {
     out.attarSizes = s.attarSizes.map(z => typeof z === 'number' ? { ml: z, bottle: 0, packing: 0 } : { ml: num(z.ml), bottle: num(z.bottle), packing: num(z.packing) });
   }
   out.perfumes = s.perfumes.map(p => newProduct({ name: p.name || '', supplier: p.supplier || '', oilPrice: num(p.oilPrice), oilQty: num(p.oilQty),
-    booster: !!p.booster, atBooster: !!p.atBooster, bottleOv: p.bottleOv || {}, packOv: p.packOv || {}, atBottleOv: p.atBottleOv || {}, atPackOv: p.atPackOv || {} }));
+    booster: !!p.booster, atBooster: !!p.atBooster, bottleOv: p.bottleOv || {}, packOv: p.packOv || {}, atBottleOv: p.atBottleOv || {}, atPackOv: p.atPackOv || {},
+    profitOv: p.profitOv || {}, atProfitOv: p.atProfitOv || {} }));
   if (fromV1) {
     const have = new Set(out.perfumes.map(p => low(p.name)));
     DEFAULTS.perfumes.forEach(p => { if (!have.has(low(p.name))) out.perfumes.push(newProduct(clone(p))); });
   }
-  out.perfumes.forEach(p => { const d = DEFAULTS.perfumes.find(x => low(x.name) === low(p.name)); if (d && !p.supplier) p.supplier = d.supplier; });
+  out.perfumes.forEach(p => {
+    const d = DEFAULTS.perfumes.find(x => low(x.name) === low(p.name));
+    if (!d) return;
+    if (!p.supplier) p.supplier = d.supplier;
+    // first visit after profit was added: fill in the profit list for products that have none yet
+    if (src !== 'current' && d.profitOv && !Object.keys(p.profitOv).length) p.profitOv = clone(d.profitOv);
+  });
   return out;
 }
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const s = JSON.parse(raw); if (valid(s)) return upgrade(s, false); }
+    if (raw) { const s = JSON.parse(raw); if (valid(s)) return upgrade(s, 'current'); }
     for (let k = 0; k < OLD_KEYS.length; k++) {
       const old = localStorage.getItem(OLD_KEYS[k]);
-      if (old) { const s = JSON.parse(old); if (valid(s)) return upgrade(s, OLD_KEYS[k].slice(-2) === 'v1'); }
+      if (old) { const s = JSON.parse(old); if (valid(s)) return upgrade(s, OLD_KEYS[k].slice(-2) === 'v1' ? 'v1' : 'old'); }
     }
   } catch (e) {}
   return fresh();
@@ -525,8 +559,13 @@ function attarView() {        // page 2 attar table
 }
 
 /* ---------- page 1 ---------- */
+function shown(r) { return S.plMode === 'cost' ? r.total : r.sell; }
 function renderPriceList() {
   const pf = S.sizes, at = attarCols();
+  const sell = S.plMode !== 'cost';
+  document.querySelectorAll('#plMode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === (sell ? 'sell' : 'cost'))));
+  $('plSub').innerHTML = (sell ? 'Selling price = cost + your profit.' : 'Cost to make, before profit.') +
+    ' <span class="tag">Booster</span> and <span class="tag at">Attar booster</span> mean 4 drops of booster oil are added.';
   $('plHead').innerHTML =
     '<tr class="grp"><th class="l"></th>' +
     (pf.length ? '<th class="pf" colspan="' + pf.length + '">Perfume<small>30% oil · 70% alcohol</small></th>' : '') + '<th class="gap"></th>' +
@@ -538,8 +577,8 @@ function renderPriceList() {
   $('plBody').innerHTML = rows.length ? rows.map(({ p, i }) =>
     '<tr><td class="l"><button type="button" class="link" data-open="' + i + '" title="See the cost of ' + esc(p.name) + '">' + esc(p.name || 'Unnamed') + '</button>' +
     (p.booster ? '<span class="tag">Booster</span>' : '') + (p.atBooster ? '<span class="tag at">Attar booster</span>' : '') + '</td>' +
-    pf.map(z => '<td class="pf">' + rupee(perfumePrice(p, z, S).total) + '</td>').join('') + '<td class="gap"></td>' +
-    at.map(z => '<td class="at">' + rupee(attarPrice(p, z, S).total) + '</td>').join('') + '</tr>').join('')
+    pf.map(z => '<td class="pf">' + rupee(shown(perfumePrice(p, z, S))) + '</td>').join('') + '<td class="gap"></td>' +
+    at.map(z => '<td class="at">' + rupee(shown(attarPrice(p, z, S))) + '</td>').join('') + '</tr>').join('')
     : '<tr><td class="empty" colspan="' + (pf.length + at.length + 2) + '">' + (S.perfumes.length ? 'No product matches your search.' : 'No products yet. Add one on the Calculations page.') + '</td></tr>';
   $('plCount').textContent = q ? rows.length + ' of ' + S.perfumes.length : S.perfumes.length + ' product' + (S.perfumes.length === 1 ? '' : 's');
 }
@@ -557,18 +596,19 @@ const inp = (cls, id, i, k, val, label, extra) => '<input class="' + cls + '" id
 
 function renderProdHead() {
   const z = viewSize(), ml = z ? z.ml : 0;
-  $('prodHead').innerHTML = '<tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
+  $('prodHead').innerHTML = '<tr><th class="l stick">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
     '<th>Oil<small>30% = ' + qty.format(ml * PERFUME_OIL) + ' ml</small></th><th>Alcohol<small>70% = ' + qty.format(ml * PERFUME_ALCOHOL) + ' ml</small></th>' +
     '<th class="c">Booster</th><th>Booster qty</th><th>Booster price</th><th>Bottle price<small>₹ optional</small></th><th>Packing price<small>₹ optional</small></th>' +
-    '<th class="tot">Total cost<small>' + qty.format(ml) + ' ml</small></th><th></th></tr>';
+    '<th class="cst pin w-cost">Total cost<small>' + qty.format(ml) + ' ml</small></th><th class="pr pin w-prof">Profit ₹<small>you type</small></th><th class="pin w-pct">Profit %<small>on cost</small></th>' +
+    '<th class="tot pin w-sell">Selling price<small>' + qty.format(ml) + ' ml</small></th><th class="pin w-del"></th></tr>';
 }
 function renderProducts() {
   const z = viewSize(), ml = z ? z.ml : 0;
-  if (!S.perfumes.length) { $('prodBody').innerHTML = '<tr><td class="empty" colspan="13">No products yet. Add one with the form above.</td></tr>'; return; }
+  if (!S.perfumes.length) { $('prodBody').innerHTML = '<tr><td class="empty" colspan="16">No products yet. Add one with the form above.</td></tr>'; return; }
   $('prodBody').innerHTML = S.perfumes.map((p, i) => {
-    const ob = own(p.bottleOv, ml), op = own(p.packOv, ml);
+    const ob = own(p.bottleOv, ml), op = own(p.packOv, ml), pr = own(p.profitOv, ml);
     return '<tr data-row="' + i + '"' + (i === sel ? ' class="sel"' : '') + '>' +
-      '<td class="namec"><input class="name" id="pf-name-' + i + '" data-i="' + i + '" data-k="name" type="text" value="' + esc(p.name) + '" placeholder="Product name" aria-label="Product name"></td>' +
+      '<td class="namec stick"><input class="name" id="pf-name-' + i + '" data-i="' + i + '" data-k="name" type="text" value="' + esc(p.name) + '" placeholder="Product name" aria-label="Product name"></td>' +
       '<td class="supc"><input class="name" id="pf-supplier-' + i + '" data-i="' + i + '" data-k="supplier" type="text" value="' + esc(p.supplier) + '" placeholder="Supplier" aria-label="Supplier or note"></td>' +
       '<td class="num">' + inp('rate', 'pf-oilPrice-' + i, i, 'oilPrice', p.oilPrice, 'Oil price') + '</td>' +
       '<td class="num">' + inp('rate', 'pf-oilQty-' + i, i, 'oilQty', p.oilQty, 'Oil quantity in g or ml') + '</td>' +
@@ -578,23 +618,27 @@ function renderProducts() {
       '<td id="pc-bq-' + i + '"></td><td id="pc-bp-' + i + '"></td>' +
       '<td class="sm">' + inp('rate opt', 'pf-bottleOv-' + i, i, 'bottleOv', ob === null ? '' : ob, 'Bottle price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
       '<td class="sm">' + inp('rate opt', 'pf-packOv-' + i, i, 'packOv', op === null ? '' : op, 'Packing price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
-      '<td class="tot" id="pc-total-' + i + '"></td>' +
-      '<td><button type="button" class="icon" data-del="' + i + '" aria-label="Delete ' + esc(p.name || 'product') + '" title="Delete">×</button></td>' +
+      '<td class="cst pin w-cost" id="pc-total-' + i + '"></td>' +
+      '<td class="pr pin w-prof">' + inp('rate', 'pf-profitOv-' + i, i, 'profitOv', pr === null ? '' : pr, 'Profit in rupees for ' + esc(p.name) + ' ' + ml + ' ml', ' placeholder="0"') + '</td>' +
+      '<td class="pct pin w-pct" id="pc-pct-' + i + '"></td>' +
+      '<td class="tot pin w-sell" id="pc-sell-' + i + '"></td>' +
+      '<td class="pin w-del"><button type="button" class="icon" data-del="' + i + '" aria-label="Delete ' + esc(p.name || 'product') + '" title="Delete">×</button></td>' +
       '</tr>';
   }).join('');
 }
 function renderAttarHead() {
   const a = attarView(), ml = a ? a.ml : 0;
-  $('attarHead').innerHTML = '<tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
+  $('attarHead').innerHTML = '<tr><th class="l stick">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
     '<th>Oil<small>100% = ' + qty.format(ml) + ' ml</small></th><th class="c">Booster</th><th>Booster qty</th><th>Booster price</th>' +
-    '<th>Bottle price<small>₹ optional</small></th><th>Packing price<small>₹ optional</small></th><th class="tot">Total cost<small>' + qty.format(ml) + ' ml</small></th></tr>';
+    '<th>Bottle price<small>₹ optional</small></th><th>Packing price<small>₹ optional</small></th><th class="cst pin w-cost">Total cost<small>' + qty.format(ml) + ' ml</small></th>' +
+    '<th class="pr pin w-prof">Profit ₹<small>you type</small></th><th class="pin w-pct">Profit %<small>on cost</small></th><th class="tot pin w-sell">Selling price<small>' + qty.format(ml) + ' ml</small></th></tr>';
 }
 function renderAttar() {
   const a = attarView(), ml = a ? a.ml : 0;
   $('attarBody').innerHTML = S.perfumes.length ? S.perfumes.map((p, i) => {
-    const ob = own(p.atBottleOv, ml), op = own(p.atPackOv, ml);
+    const ob = own(p.atBottleOv, ml), op = own(p.atPackOv, ml), pr = own(p.atProfitOv, ml);
     return '<tr data-row="' + i + '"' + (i === sel ? ' class="sel"' : '') + '>' +
-      '<td class="l" id="at-name-' + i + '"></td><td class="l note" id="at-sup-' + i + '"></td>' +
+      '<td class="l stick" id="at-name-' + i + '"></td><td class="l note" id="at-sup-' + i + '"></td>' +
       '<td class="num">' + inp('rate', 'at-oilPrice-' + i, i, 'oilPrice', p.oilPrice, 'Oil price') + '</td>' +
       '<td class="num">' + inp('rate', 'at-oilQty-' + i, i, 'oilQty', p.oilQty, 'Oil quantity in g or ml') + '</td>' +
       '<td class="v cost" id="ac-oil-' + i + '"></td>' +
@@ -602,8 +646,11 @@ function renderAttar() {
       '<td id="ac-bq-' + i + '"></td><td id="ac-bp-' + i + '"></td>' +
       '<td class="sm">' + inp('rate opt', 'at-bottleOv-' + i, i, 'atBottleOv', ob === null ? '' : ob, 'Attar bottle price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
       '<td class="sm">' + inp('rate opt', 'at-packOv-' + i, i, 'atPackOv', op === null ? '' : op, 'Attar packing price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
-      '<td class="tot" id="ac-total-' + i + '"></td></tr>';
-  }).join('') : '<tr><td class="empty" colspan="11">No products yet.</td></tr>';
+      '<td class="cst pin w-cost" id="ac-total-' + i + '"></td>' +
+      '<td class="pr pin w-prof">' + inp('rate', 'at-profitOv-' + i, i, 'atProfitOv', pr === null ? '' : pr, 'Attar profit in rupees for ' + esc(p.name) + ' ' + ml + ' ml', ' placeholder="0"') + '</td>' +
+      '<td class="pct pin w-pct" id="ac-pct-' + i + '"></td>' +
+      '<td class="tot pin w-sell" id="ac-sell-' + i + '"></td></tr>';
+  }).join('') : '<tr><td class="empty" colspan="14">No products yet.</td></tr>';
 }
 function filterProducts() {
   const q = low($('prodSearch').value); let shown = 0;
@@ -641,6 +688,13 @@ function rateLabels() {
 /* ---------- refresh (computed cells only, so typing keeps focus) ---------- */
 function setText(id, html, cls) { const el = $(id); if (!el) return; el.innerHTML = html; if (cls != null) el.className = cls; }
 function optState(id, isOwn, std) { const el = $(id); if (!el) return; el.classList.toggle('set', isOwn); el.placeholder = inr.format(std); el.title = isOwn ? 'Your own price. Clear it to use the standard ' + rupee(std) + '.' : 'Standard rate ' + rupee(std) + '. Type to set your own price.'; }
+function setPct(id, r) {
+  const el = $(id); if (!el) return;
+  const has = r.profit !== 0 && r.pct !== null;
+  el.textContent = has ? r.pct.toFixed(1) + '%' : '–';
+  el.classList.toggle('pos', has && r.profit > 0);
+  el.classList.toggle('neg', has && r.profit < 0);
+}
 function update() {
   const z = viewSize(), a = attarView();
   S.perfumes.forEach((p, i) => {
@@ -653,6 +707,8 @@ function update() {
       optState('pf-bottleOv-' + i, r.ownBottle, z.bottle);
       optState('pf-packOv-' + i, r.ownPacking, z.packing);
       setText('pc-total-' + i, rupee(r.total));
+      setPct('pc-pct-' + i, r);
+      setText('pc-sell-' + i, rupee(r.sell));
     }
     setText('at-name-' + i, esc(p.name || 'Unnamed'));
     setText('at-sup-' + i, esc(p.supplier));
@@ -664,6 +720,8 @@ function update() {
       optState('at-bottleOv-' + i, r.ownBottle, +a.bottle || 0);
       optState('at-packOv-' + i, r.ownPacking, +a.packing || 0);
       setText('ac-total-' + i, rupee(r.total));
+      setPct('ac-pct-' + i, r);
+      setText('ac-sell-' + i, rupee(r.sell));
     }
   });
   document.querySelectorAll('#prodBody tr[data-row], #attarBody tr[data-row]').forEach(tr => tr.classList.toggle('sel', +tr.dataset.row === sel));
@@ -687,9 +745,10 @@ $('toastBtn').addEventListener('click', () => { if (undo) undo(); $('toast').hid
 /* ---------- copy ---------- */
 async function copyList() {
   const at = attarCols();
-  const lines = [['Product'].concat(S.sizes.map(z => 'Perfume ' + z.ml + ' ml'), at.map(z => 'Attar ' + z.ml + ' ml')).join('\t')];
+  const what = S.plMode === 'cost' ? 'cost' : 'selling price';
+  const lines = [['Product (' + what + ')'].concat(S.sizes.map(z => 'Perfume ' + z.ml + ' ml'), at.map(z => 'Attar ' + z.ml + ' ml')).join('\t')];
   S.perfumes.forEach(p => lines.push([p.name]
-    .concat(S.sizes.map(z => perfumePrice(p, z, S).total.toFixed(2)), at.map(z => attarPrice(p, z, S).total.toFixed(2))).join('\t')));
+    .concat(S.sizes.map(z => shown(perfumePrice(p, z, S)).toFixed(2)), at.map(z => shown(attarPrice(p, z, S)).toFixed(2))).join('\t')));
   const text = lines.join('\n');
   let ok = false;
   try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
@@ -700,6 +759,10 @@ async function copyList() {
 
 /* ---------- events: page 1 ---------- */
 $('plSearch').addEventListener('input', renderPriceList);
+$('plMode').addEventListener('click', e => {
+  const b = e.target.closest('[data-mode]'); if (!b) return;
+  S.plMode = b.dataset.mode; save(); renderPriceList();
+});
 $('customAttar').addEventListener('input', renderPriceList);
 $('copyList').addEventListener('click', copyList);
 $('plBody').addEventListener('click', e => {
@@ -725,7 +788,7 @@ function moveOwn(keys, from, to) {   // keep typed prices with their size when a
     delete m[String(from)];
   }));
 }
-[['sizes', 'sizes-body', 'pfView', ['bottleOv', 'packOv'], 'perfume'], ['attarSizes', 'attar-body', 'atView', ['atBottleOv', 'atPackOv'], 'attar']].forEach(([list, body, view, keys, label]) => {
+[['sizes', 'sizes-body', 'pfView', ['bottleOv', 'packOv', 'profitOv'], 'perfume'], ['attarSizes', 'attar-body', 'atView', ['atBottleOv', 'atPackOv', 'atProfitOv'], 'attar']].forEach(([list, body, view, keys, label]) => {
   $(body).addEventListener('input', e => {
     const t = e.target; if (!t.dataset.k) return;
     const z = S[list][+t.dataset.i], v = num(t.value);
@@ -770,8 +833,8 @@ function onRow(e) {
   const i = +t.dataset.i, p = S.perfumes[i];
   if (k === 'name' || k === 'supplier') p[k] = t.value;
   else if (k === 'booster' || k === 'atBooster') p[k] = t.checked;
-  else if (k === 'bottleOv' || k === 'packOv' || k === 'atBottleOv' || k === 'atPackOv') {
-    const z = (k === 'bottleOv' || k === 'packOv') ? viewSize() : attarView(); if (!z) return;
+  else if (['bottleOv', 'packOv', 'profitOv', 'atBottleOv', 'atPackOv', 'atProfitOv'].indexOf(k) >= 0) {
+    const z = (k.indexOf('at') === 0) ? attarView() : viewSize(); if (!z) return;
     p[k] = p[k] || {};
     if (t.value.trim() === '') delete p[k][String(z.ml)]; else p[k][String(z.ml)] = num(t.value);
   } else {   // oilPrice / oilQty: shared by both tables
