@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* Two pages in one file: #price-list (names + final prices) and #calculations (rates, products, breakdown).
+  /* Two pages in one file: #price-list (names + final prices) and #calculations (cost sheets and rates).
      Colours follow the workbook: blue = rates you type, gold = oil & alcohol cost, green = perfume price, indigo = attar price. */
   :root{
     --paper:#F3F6F4; --card:#FFFFFF; --ink:#14211C; --muted:#5D6B65; --line:#DCE4E0;
@@ -49,7 +49,7 @@
   *{box-sizing:border-box}
   html,body{margin:0}
   body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--body);font-variant-numeric:tabular-nums;}
-  .wrap{max-width:1200px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:20px;}
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 16px 48px;display:grid;gap:20px;}
   [hidden]{display:none !important;}
   main{min-width:0;}
 
@@ -64,7 +64,7 @@
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0;}
   .card h2{font-family:var(--display);font-weight:600;font-size:19px;margin:0 0 4px;}
-  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px;}
+  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px;max-width:80ch;}
   .row-head{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
   .row-head .sub{margin:0;}
   .count{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted);margin-left:6px;}
@@ -72,6 +72,9 @@
   .fixed{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--cost-bg);color:var(--cost-ink);border-radius:8px;padding:9px 12px;font-size:14px;font-weight:500;margin-bottom:10px;}
   .result{font-size:13px;color:var(--muted);padding:2px 0 6px;}
   .result b{color:var(--ink);font-weight:600;}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:-4px 0 10px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{display:inline-block;width:26px;height:16px;border-radius:4px;}
 
   .field{display:grid;grid-template-columns:1fr 132px;gap:10px;align-items:center;padding:5px 0;}
   .field label{font-size:14px;}
@@ -80,6 +83,9 @@
   input.rate{text-align:right;font-variant-numeric:tabular-nums;}
   input.rate:focus, input.name:focus{outline:none;border-color:var(--rate-focus);box-shadow:0 0 0 3px color-mix(in srgb, var(--rate-focus) 25%, transparent);}
   input.rate::placeholder, input.name::placeholder{color:var(--muted);}
+  /* optional manual price: dashed = standard rate (shown as placeholder), solid = your own price */
+  input.rate.opt{background:transparent;border-style:dashed;}
+  input.rate.opt.set{background:var(--rate-bg);border-style:solid;border-color:var(--rate-focus);font-weight:600;}
   input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
   .unit{position:relative;}
   .unit input{padding-right:30px;}
@@ -90,11 +96,11 @@
   input.search{font:inherit;font-size:14px;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:200px;}
   input.search:focus{outline:none;border-color:var(--accent);}
   .custom{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
-  .custom input{width:96px;}
+  .custom input{width:108px;}
 
   button{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:8px 13px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);}
   button:hover{border-color:var(--accent);}
-  button:focus-visible, select:focus-visible, input[type="checkbox"]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  button:focus-visible, input[type="checkbox"]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
   button.primary:hover{filter:brightness(1.08);}
   button.icon{padding:4px 8px;line-height:1;color:var(--muted);background:transparent;border-color:transparent;font-size:18px;}
@@ -121,6 +127,7 @@
   .pl .gap{width:10px;padding:0;background:transparent !important;border-bottom-color:transparent;}
   .pl td.l{position:sticky;left:0;background:var(--card);z-index:1;min-width:170px;}
   .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px;background:var(--cost-bg);color:var(--cost-ink);}
+  .tag.at{background:var(--attar-bg);color:var(--attar-ink);}
   .empty{padding:18px;color:var(--muted);text-align:center;}
 
   /* page 2 */
@@ -136,17 +143,18 @@
   .seg button:hover{color:var(--ink);}
   .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);}
 
-  table.prod{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:1100px;}
-  table.prod.attar{min-width:760px;}
-  .prod th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:8px 7px;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:nowrap;}
+  table.prod{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;min-width:1180px;}
+  table.prod.attar{min-width:1060px;}
+  .prod th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:bottom;white-space:nowrap;}
   .prod th.l{text-align:left;}
   .prod th.c, .prod td.c{text-align:center;}
   .prod th small{display:block;font-weight:500;font-size:11px;}
-  .prod td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle;white-space:nowrap;}
+  .prod td{padding:6px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle;white-space:nowrap;}
   .prod td.namec{min-width:150px;text-align:left;}
   .prod td.supc{min-width:140px;text-align:left;}
   .prod td.supc input{font-size:13.5px;}
-  .prod td.num input{width:86px;}
+  .prod td.num input{width:84px;}
+  .prod td.sm input{width:88px;}
   .prod td.l{text-align:left;font-weight:500;}
   .prod td.v small{display:block;color:var(--muted);font-size:11.5px;}
   .prod td.cost{background:color-mix(in srgb, var(--cost-bg) 65%, transparent);}
@@ -163,7 +171,6 @@
   .sizes th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:4px 3px 6px;white-space:nowrap;}
   .sizes td{padding:3px;}
   .sizes td:last-child{width:30px;text-align:right;}
-
 
   .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:var(--paper);border-radius:10px;padding:10px 14px;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:calc(100% - 32px);z-index:5;}
   .toast button{background:transparent;color:var(--paper);border-color:color-mix(in srgb, var(--paper) 40%, transparent);padding:4px 10px;}
@@ -200,7 +207,7 @@
       <div class="row-head">
         <div>
           <h2 id="h-pl">Price list <span class="count" id="plCount"></span></h2>
-          <p class="sub">Final selling price. <span class="tag">Booster</span> means 4 drops of booster oil are added to that product&rsquo;s perfume.</p>
+          <p class="sub">Final selling price. <span class="tag">Booster</span> and <span class="tag at">Attar booster</span> mean 4 drops of booster oil are added.</p>
         </div>
         <div class="btns">
           <label class="custom" for="customAttar">Other attar size <span class="unit" data-unit="ml"><input class="rate" id="customAttar" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 10"></span></label>
@@ -240,13 +247,14 @@
         <div class="row-head">
           <div>
             <h2 id="h-prod">Perfume cost <span class="count" id="prodCount"></span></h2>
-            <p class="sub">Edit oil rates here. Tick Booster to add 4 drops of booster oil to that product.</p>
+            <p class="sub">Tick Booster to add 4 drops of booster oil. Bottle and packing use the standard rate for the size; type your own price in a row to change it for that product only, clear it to go back.</p>
           </div>
           <div class="btns">
             <div class="seg" id="pfSeg" role="group" aria-label="Perfume bottle size"></div>
             <input type="search" class="search" id="prodSearch" placeholder="Search product or supplier" aria-label="Search products and suppliers">
           </div>
         </div>
+        <div class="legend"><span><i style="border:1px dashed var(--rate-line)"></i>standard rate</span><span><i style="background:var(--rate-bg);border:1px solid var(--rate-focus)"></i>your own price</span></div>
         <div class="scroll">
           <table class="prod">
             <thead id="prodHead"></thead>
@@ -259,13 +267,14 @@
         <div class="row-head">
           <div>
             <h2 id="h-attar">Attar cost</h2>
-            <p class="sub">Pure oil: total cost = oil ml × oil per ml. Oil rates come from the Perfume cost table above.</p>
+            <p class="sub">Pure oil, no alcohol. Booster, bottle and packing work the same way as in Perfume cost. Oil rates are shared with the Perfume cost table.</p>
           </div>
           <div class="btns">
             <div class="seg" id="atSeg" role="group" aria-label="Attar size"></div>
             <label class="custom" for="atOther">Other <span class="unit" data-unit="ml"><input class="rate" id="atOther" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 10"></span></label>
           </div>
         </div>
+        <div class="legend"><span><i style="border:1px dashed var(--rate-line)"></i>standard rate</span><span><i style="background:var(--rate-bg);border:1px solid var(--rate-focus)"></i>your own price</span></div>
         <div class="scroll">
           <table class="prod attar">
             <thead id="attarHead"></thead>
@@ -294,12 +303,6 @@
             <label for="boostQty">Booster pack size<small>= <span id="boostPerG"></span></small></label>
             <div class="unit" data-unit="g"><input class="rate" id="boostQty" type="number" inputmode="decimal" step="any" min="0"></div>
           </div>
-        </section>
-
-        <section class="card" aria-labelledby="h-pf">
-          <h2 id="h-pf">Perfume bottles</h2>
-          <p class="sub">Every perfume bottle is mixed the same way.</p>
-          <div class="fixed"><span>Oil 30%</span><span>Alcohol 70%</span></div>
           <div class="field">
             <label for="boostDrops">Booster per bottle<small>when ticked for a product</small></label>
             <div class="unit wide" data-unit="drops"><input class="rate" id="boostDrops" type="number" inputmode="decimal" step="any" min="0"></div>
@@ -309,6 +312,12 @@
             <div class="unit wide" data-unit="drops"><input class="rate" id="dropsPerMl" type="number" inputmode="decimal" step="any" min="1"></div>
           </div>
           <p class="result" id="boostResult"></p>
+        </section>
+
+        <section class="card" aria-labelledby="h-pf">
+          <h2 id="h-pf">Perfume bottles</h2>
+          <p class="sub">Standard bottle and packing rate for each size.</p>
+          <div class="fixed"><span>Oil 30%</span><span>Alcohol 70%</span></div>
           <table class="sizes" aria-label="Perfume bottle sizes">
             <thead><tr><th>Size</th><th>Bottle ₹</th><th>Packing ₹</th><th></th></tr></thead>
             <tbody id="sizes-body"></tbody>
@@ -317,14 +326,14 @@
         </section>
 
         <section class="card" aria-labelledby="h-at">
-          <h2 id="h-at">Attar</h2>
-          <p class="sub">Pure oil, no alcohol: price = ml × oil per ml. Sizes shown on the Price list:</p>
+          <h2 id="h-at">Attar bottles</h2>
+          <p class="sub">Standard bottle and packing rate for each attar size. Leave ₹0 if the customer brings their own.</p>
+          <div class="fixed"><span>Oil 100%</span><span>No alcohol</span></div>
           <table class="sizes" aria-label="Attar sizes">
-            <thead><tr><th>Size</th><th></th></tr></thead>
+            <thead><tr><th>Size</th><th>Bottle ₹</th><th>Packing ₹</th><th></th></tr></thead>
             <tbody id="attar-body"></tbody>
           </table>
           <div class="btns" style="margin-top:10px"><button type="button" id="addAtSize">Add attar size</button></div>
-          <p class="note" style="margin:10px 0 0">For a one-off size, use &ldquo;Other attar size&rdquo; on the Price list.</p>
         </section>
       </div>
 
@@ -344,55 +353,81 @@ const PERFUME_ALCOHOL = 0.70;
 const DEFAULTS = {
   alcPackPrice: 1500, alcPackQty: 5,       // Wather / alcohol: ₹1500 for 5 kg = ₹300 per litre (sheet column E)
   boostPackPrice: 750, boostPackQty: 30,   // Booster oil: ₹750 for 30 g = ₹25 per g
-  boostDrops: 4,                           // drops of booster per perfume bottle
+  boostDrops: 4,                           // drops of booster per bottle, when ticked
   dropsPerMl: 20,                          // 20 drops = 1 ml (1 ml of oil taken as 1 g)
-  sizes: [                                 // perfume bottles: bottle (K), packing (L)
+  sizes: [                                 // perfume: standard bottle (K) and packing (L)
     { ml: 30,  bottle: 50, packing: 9 },
     { ml: 50,  bottle: 60, packing: 9 },
     { ml: 100, bottle: 75, packing: 9 }
   ],
-  attarSizes: [3, 6, 12, 24],              // attar ml, pure oil
+  attarSizes: [                            // attar: standard bottle and packing
+    { ml: 3,  bottle: 0, packing: 0 },
+    { ml: 6,  bottle: 0, packing: 0 },
+    { ml: 12, bottle: 0, packing: 0 },
+    { ml: 24, bottle: 0, packing: 0 }
+  ],
   pfView: 30, atView: 6,                   // size shown in the cost tables
   perfumes: [                              // oil price (B) for oil qty (C)
-    { name: 'Khamrah Waha',    supplier: 'Al-Shahab',         oilPrice: 2125, oilQty: 250, booster: false },
-    { name: 'Gucchi Flora',    supplier: 'Al-Shahab',         oilPrice: 1350, oilQty: 250, booster: false },
-    { name: 'Al-Tahba',        supplier: 'Al-Shahab',         oilPrice: 2375, oilQty: 250, booster: false },
-    { name: 'Dubai Gold',      supplier: 'Al-Shahab',         oilPrice: 1200, oilQty: 250, booster: false },
-    { name: 'Hawas',           supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250, booster: false },
-    { name: 'White Oud',       supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250, booster: false },
-    { name: 'Shanaya',         supplier: 'Al-Shahab',         oilPrice: 1700, oilQty: 250, booster: false },
-    { name: 'Imperial Valley', supplier: 'Al-Shahab · Trial', oilPrice: 2375, oilQty: 250, booster: false }
+    { name: 'Khamrah Waha',    supplier: 'Al-Shahab',         oilPrice: 2125, oilQty: 250 },
+    { name: 'Gucchi Flora',    supplier: 'Al-Shahab',         oilPrice: 1350, oilQty: 250 },
+    { name: 'Al-Tahba',        supplier: 'Al-Shahab',         oilPrice: 2375, oilQty: 250 },
+    { name: 'Dubai Gold',      supplier: 'Al-Shahab',         oilPrice: 1200, oilQty: 250 },
+    { name: 'Hawas',           supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250 },
+    { name: 'White Oud',       supplier: 'Al-Shahab',         oilPrice: 1625, oilQty: 250 },
+    { name: 'Shanaya',         supplier: 'Al-Shahab',         oilPrice: 1700, oilQty: 250 },
+    { name: 'Imperial Valley', supplier: 'Al-Shahab · Trial', oilPrice: 2375, oilQty: 250 }
   ]
 };
+/* Each product also keeps: booster / atBooster (ticks), and its own bottle & packing prices
+   per size when you type them: bottleOv, packOv (perfume) and atBottleOv, atPackOv (attar), e.g. { "30": 55 }. */
+function newProduct(o) {
+  return Object.assign({ name: '', supplier: '', oilPrice: 0, oilQty: 250, booster: false, atBooster: false,
+    bottleOv: {}, packOv: {}, atBottleOv: {}, atPackOv: {} }, o || {});
+}
 
 /*CALC-START*/
+function own(map, ml) {                    // a price typed for this product and size, or null
+  if (!map) return null;
+  const v = map[String(ml)];
+  return (v === '' || v == null || isNaN(v)) ? null : +v;
+}
+function boosterMl(c) { return c.dropsPerMl ? c.boostDrops / c.dropsPerMl : 0; }
+function boosterPerG(c) { return c.boostPackQty ? c.boostPackPrice / c.boostPackQty : 0; }
+
 /* Perfume bottle. Mirrors the sheet: D = B/C, F = E/1000, G = 30% of ml, H = 70% of ml,
-   I = G*D, J = H*F, price = I + J + K + L, plus booster drops when ticked for the product. */
+   I = G*D, J = H*F, price = I + J + booster + K + L. */
 function perfumePrice(p, size, c) {
   const oilPerMl = p.oilQty ? p.oilPrice / p.oilQty : 0;                                   // D
   const alcPerMl = (c.alcPackQty ? c.alcPackPrice / c.alcPackQty : 0) / 1000;              // F
-  const boostPerG = c.boostPackQty ? c.boostPackPrice / c.boostPackQty : 0;
-  const oilMl = size.ml * PERFUME_OIL;                                                     // G
-  const alcMl = size.ml * PERFUME_ALCOHOL;                                                 // H
-  const oilCost = oilMl * oilPerMl;                                                        // I
-  const alcCost = alcMl * alcPerMl;                                                        // J
-  const boostMl = p.booster && c.dropsPerMl ? c.boostDrops / c.dropsPerMl : 0;
-  const boostCost = boostMl * boostPerG;
-  const total = oilCost + alcCost + boostCost + size.bottle + size.packing;
-  return { oilPerMl, alcPerMl, boostPerG, oilMl, alcMl, oilCost, alcCost, boostMl, boostCost, bottle: size.bottle, packing: size.packing, total };
+  const oilMl = size.ml * PERFUME_OIL, alcMl = size.ml * PERFUME_ALCOHOL;                  // G, H
+  const oilCost = oilMl * oilPerMl, alcCost = alcMl * alcPerMl;                            // I, J
+  const boostMl = p.booster ? boosterMl(c) : 0;
+  const boostCost = boostMl * boosterPerG(c);
+  const ob = own(p.bottleOv, size.ml), op = own(p.packOv, size.ml);
+  const bottle = ob === null ? size.bottle : ob;                                           // K
+  const packing = op === null ? size.packing : op;                                         // L
+  const total = oilCost + alcCost + boostCost + bottle + packing;
+  return { oilPerMl, alcPerMl, oilMl, alcMl, oilCost, alcCost, boostMl, boostCost, bottle, packing, ownBottle: ob !== null, ownPacking: op !== null, total };
 }
-/* Attar: pure oil. price = ml x oil per ml. */
-function attarPrice(p, ml) {
+/* Attar: pure oil, plus booster, bottle and packing in the same way. */
+function attarPrice(p, size, c) {
   const oilPerMl = p.oilQty ? p.oilPrice / p.oilQty : 0;
-  return { oilPerMl, oilMl: ml, total: ml * oilPerMl };
+  const oilMl = size.ml, oilCost = oilMl * oilPerMl;
+  const boostMl = p.atBooster ? boosterMl(c) : 0;
+  const boostCost = boostMl * boosterPerG(c);
+  const ob = own(p.atBottleOv, size.ml), op = own(p.atPackOv, size.ml);
+  const bottle = ob === null ? (+size.bottle || 0) : ob;
+  const packing = op === null ? (+size.packing || 0) : op;
+  const total = oilCost + boostCost + bottle + packing;
+  return { oilPerMl, oilMl, oilCost, boostMl, boostCost, bottle, packing, ownBottle: ob !== null, ownPacking: op !== null, total };
 }
 /*CALC-END*/
 
 const $ = id => document.getElementById(id);
 const inr = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const qty = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
-const KEY = 'perfume-price-calculator-v4';
-const OLD_KEYS = ['perfume-price-calculator-v3', 'perfume-price-calculator-v2', 'perfume-price-calculator-v1'];
+const KEY = 'perfume-price-calculator-v5';
+const OLD_KEYS = ['perfume-price-calculator-v4', 'perfume-price-calculator-v3', 'perfume-price-calculator-v2', 'perfume-price-calculator-v1'];
 let S, sel = 0, undo = null, toastTimer = null;
 
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -401,23 +436,23 @@ function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replac
 function rupee(v) { return '₹' + inr.format(v); }
 function low(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
 function valid(s) { return s && Array.isArray(s.sizes) && Array.isArray(s.perfumes); }
+function fresh() { const s = clone(DEFAULTS); s.perfumes = s.perfumes.map(p => newProduct(p)); return s; }
 
 /* ---------- saving, and keeping what earlier versions saved ---------- */
 function upgrade(s, fromV1) {
-  const out = clone(DEFAULTS);
+  const out = fresh();
   if (s.alcPackPrice != null) { out.alcPackPrice = s.alcPackPrice; out.alcPackQty = s.alcPackQty; }
   else if (s.alcoholPerLitre != null) { out.alcPackPrice = s.alcoholPerLitre; out.alcPackQty = 1; }
-  if (s.boostPackPrice != null) { out.boostPackPrice = s.boostPackPrice; out.boostPackQty = s.boostPackQty; }
-  if (s.boostDrops != null) out.boostDrops = s.boostDrops;
-  if (s.dropsPerMl != null) out.dropsPerMl = s.dropsPerMl;
-  if (s.pfView != null) out.pfView = s.pfView;
-  if (s.atView != null) out.atView = s.atView;
+  ['boostPackPrice', 'boostPackQty', 'boostDrops', 'dropsPerMl', 'pfView', 'atView'].forEach(k => { if (s[k] != null) out[k] = s[k]; });
   out.sizes = s.sizes.map(z => ({ ml: num(z.ml), bottle: num(z.bottle), packing: num(z.packing) }));
-  if (Array.isArray(s.attarSizes) && s.attarSizes.length) out.attarSizes = s.attarSizes.map(z => typeof z === 'number' ? z : num(z.ml));
-  out.perfumes = s.perfumes.map(p => ({ name: p.name || '', supplier: p.supplier || '', oilPrice: num(p.oilPrice), oilQty: num(p.oilQty), booster: !!p.booster }));
+  if (Array.isArray(s.attarSizes) && s.attarSizes.length) {
+    out.attarSizes = s.attarSizes.map(z => typeof z === 'number' ? { ml: z, bottle: 0, packing: 0 } : { ml: num(z.ml), bottle: num(z.bottle), packing: num(z.packing) });
+  }
+  out.perfumes = s.perfumes.map(p => newProduct({ name: p.name || '', supplier: p.supplier || '', oilPrice: num(p.oilPrice), oilQty: num(p.oilQty),
+    booster: !!p.booster, atBooster: !!p.atBooster, bottleOv: p.bottleOv || {}, packOv: p.packOv || {}, atBottleOv: p.atBottleOv || {}, atPackOv: p.atPackOv || {} }));
   if (fromV1) {
     const have = new Set(out.perfumes.map(p => low(p.name)));
-    DEFAULTS.perfumes.forEach(p => { if (!have.has(low(p.name))) out.perfumes.push(clone(p)); });
+    DEFAULTS.perfumes.forEach(p => { if (!have.has(low(p.name))) out.perfumes.push(newProduct(clone(p))); });
   }
   out.perfumes.forEach(p => { const d = DEFAULTS.perfumes.find(x => low(x.name) === low(p.name)); if (d && !p.supplier) p.supplier = d.supplier; });
   return out;
@@ -431,12 +466,13 @@ function load() {
       if (old) { const s = JSON.parse(old); if (valid(s)) return upgrade(s, OLD_KEYS[k].slice(-2) === 'v1'); }
     }
   } catch (e) {}
-  return clone(DEFAULTS);
+  return fresh();
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
 /* ---------- pages ---------- */
-const PAGES = { 'price-list': 'Final selling prices for perfume and attar.', 'calculations': 'Rates, products and the working behind every price.' };
+const PAGES = { 'price-list': 'Final selling prices for perfume and attar.', 'calculations': 'Cost of every bottle, and the rates behind it.' };
+let scrollToRow = null;
 function showPage() {
   const name = location.hash === '#calculations' ? 'calculations' : 'price-list';
   Object.keys(PAGES).forEach(p => {
@@ -453,13 +489,21 @@ window.addEventListener('hashchange', () => {
   scrollToRow = null;
 });
 
-/* ---------- page 1 ---------- */
-function attarCols() {
-  const cols = S.attarSizes.map(ml => ({ ml: ml, custom: false }));
+/* ---------- sizes shown ---------- */
+function attarCols() {        // page 1: standard attar sizes + the customer's own size
+  const cols = S.attarSizes.map(z => Object.assign({ custom: false }, z));
   const c = num($('customAttar').value);
-  if (c > 0 && S.attarSizes.indexOf(c) < 0) cols.push({ ml: c, custom: true });
+  if (c > 0 && !S.attarSizes.some(z => z.ml === c)) cols.push({ ml: c, bottle: 0, packing: 0, custom: true });
   return cols;
 }
+function viewSize() { return S.sizes.find(z => z.ml === S.pfView) || S.sizes[0] || null; }
+function attarView() {        // page 2 attar table
+  const o = num($('atOther').value);
+  if (o > 0) return S.attarSizes.find(z => z.ml === o) || { ml: o, bottle: 0, packing: 0, custom: true };
+  return S.attarSizes.find(z => z.ml === S.atView) || S.attarSizes[0] || null;
+}
+
+/* ---------- page 1 ---------- */
 function renderPriceList() {
   const pf = S.sizes, at = attarCols();
   $('plHead').innerHTML =
@@ -471,68 +515,75 @@ function renderPriceList() {
   const q = low($('plSearch').value);
   const rows = S.perfumes.map((p, i) => ({ p, i })).filter(o => !q || low(o.p.name).indexOf(q) >= 0);
   $('plBody').innerHTML = rows.length ? rows.map(({ p, i }) =>
-    '<tr><td class="l"><button type="button" class="link" data-open="' + i + '" title="See the working for ' + esc(p.name) + '">' + esc(p.name || 'Unnamed') + '</button>' + (p.booster ? '<span class="tag">Booster</span>' : '') + '</td>' +
+    '<tr><td class="l"><button type="button" class="link" data-open="' + i + '" title="See the cost of ' + esc(p.name) + '">' + esc(p.name || 'Unnamed') + '</button>' +
+    (p.booster ? '<span class="tag">Booster</span>' : '') + (p.atBooster ? '<span class="tag at">Attar booster</span>' : '') + '</td>' +
     pf.map(z => '<td class="pf">' + rupee(perfumePrice(p, z, S).total) + '</td>').join('') + '<td class="gap"></td>' +
-    at.map(z => '<td class="at">' + rupee(attarPrice(p, z.ml).total) + '</td>').join('') + '</tr>').join('')
+    at.map(z => '<td class="at">' + rupee(attarPrice(p, z, S).total) + '</td>').join('') + '</tr>').join('')
     : '<tr><td class="empty" colspan="' + (pf.length + at.length + 2) + '">' + (S.perfumes.length ? 'No product matches your search.' : 'No products yet. Add one on the Calculations page.') + '</td></tr>';
   $('plCount').textContent = q ? rows.length + ' of ' + S.perfumes.length : S.perfumes.length + ' product' + (S.perfumes.length === 1 ? '' : 's');
 }
 
 /* ---------- page 2: size switches ---------- */
-function viewSize() { return S.sizes.find(z => z.ml === S.pfView) || S.sizes[0] || null; }
-function attarViewMl() {
-  const o = num($('atOther').value);
-  if (o > 0) return o;
-  return S.attarSizes.indexOf(S.atView) >= 0 ? S.atView : (S.attarSizes[0] || 0);
-}
 function renderSeg() {
   const z = viewSize();
   $('pfSeg').innerHTML = S.sizes.map(s => '<button type="button" data-ml="' + s.ml + '" aria-pressed="' + (!!z && s.ml === z.ml) + '">' + qty.format(s.ml) + ' ml</button>').join('');
-  const other = num($('atOther').value) > 0, am = attarViewMl();
-  $('atSeg').innerHTML = S.attarSizes.map(ml => '<button type="button" data-ml="' + ml + '" aria-pressed="' + (!other && ml === am) + '">' + qty.format(ml) + ' ml</button>').join('');
+  const other = num($('atOther').value) > 0, a = attarView();
+  $('atSeg').innerHTML = S.attarSizes.map(s => '<button type="button" data-ml="' + s.ml + '" aria-pressed="' + (!other && !!a && s.ml === a.ml) + '">' + qty.format(s.ml) + ' ml</button>').join('');
 }
 
-/* ---------- page 2: perfume cost table ---------- */
+/* ---------- page 2: cost tables ---------- */
+const inp = (cls, id, i, k, val, label, extra) => '<input class="' + cls + '" id="' + id + '" data-i="' + i + '" data-k="' + k + '" type="number" inputmode="decimal" step="any" min="0" value="' + val + '" aria-label="' + label + '"' + (extra || '') + '>';
+
 function renderProdHead() {
-  const z = viewSize(), ml = z ? qty.format(z.ml) : '';
+  const z = viewSize(), ml = z ? z.ml : 0;
   $('prodHead').innerHTML = '<tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
-    '<th>Oil<small>30% = ' + qty.format((z ? z.ml : 0) * PERFUME_OIL) + ' ml</small></th><th>Alcohol<small>70% = ' + qty.format((z ? z.ml : 0) * PERFUME_ALCOHOL) + ' ml</small></th>' +
-    '<th class="c">Booster</th><th>Booster qty</th><th>Booster price</th><th>Bottle price</th><th>Packing price</th>' +
-    '<th class="tot">Total cost<small>' + ml + ' ml</small></th><th></th></tr>';
+    '<th>Oil<small>30% = ' + qty.format(ml * PERFUME_OIL) + ' ml</small></th><th>Alcohol<small>70% = ' + qty.format(ml * PERFUME_ALCOHOL) + ' ml</small></th>' +
+    '<th class="c">Booster</th><th>Booster qty</th><th>Booster price</th><th>Bottle price<small>₹ optional</small></th><th>Packing price<small>₹ optional</small></th>' +
+    '<th class="tot">Total cost<small>' + qty.format(ml) + ' ml</small></th><th></th></tr>';
 }
 function renderProducts() {
-  if (!S.perfumes.length) { $('prodBody').innerHTML = '<tr><td class="empty" colspan="13">No products yet. Add one with the form above.</td></tr>'; $('prodCount').textContent = ''; return; }
-  $('prodBody').innerHTML = S.perfumes.map((p, i) =>
-    '<tr data-row="' + i + '"' + (i === sel ? ' class="sel"' : '') + '>' +
-    '<td class="namec"><input class="name" id="pf-name-' + i + '" data-i="' + i + '" data-k="name" type="text" value="' + esc(p.name) + '" placeholder="Product name" aria-label="Product name"></td>' +
-    '<td class="supc"><input class="name" id="pf-supplier-' + i + '" data-i="' + i + '" data-k="supplier" type="text" value="' + esc(p.supplier) + '" placeholder="Supplier" aria-label="Supplier or note"></td>' +
-    '<td class="num"><input class="rate" id="pf-oilPrice-' + i + '" data-i="' + i + '" data-k="oilPrice" type="number" inputmode="decimal" step="any" min="0" value="' + p.oilPrice + '" aria-label="Oil price"></td>' +
-    '<td class="num"><input class="rate" id="pf-oilQty-' + i + '" data-i="' + i + '" data-k="oilQty" type="number" inputmode="decimal" step="any" min="0" value="' + p.oilQty + '" aria-label="Oil quantity in g or ml"></td>' +
-    '<td class="v cost" id="pc-oil-' + i + '"></td>' +
-    '<td class="v cost" id="pc-alc-' + i + '"></td>' +
-    '<td class="c"><input type="checkbox" id="pf-booster-' + i + '" data-i="' + i + '" data-k="booster"' + (p.booster ? ' checked' : '') + ' aria-label="Add booster to ' + esc(p.name || 'this product') + '"></td>' +
-    '<td id="pc-bq-' + i + '"></td>' +
-    '<td id="pc-bp-' + i + '"></td>' +
-    '<td id="pc-bottle-' + i + '"></td>' +
-    '<td id="pc-pack-' + i + '"></td>' +
-    '<td class="tot" id="pc-total-' + i + '"></td>' +
-    '<td><button type="button" class="icon" data-del="' + i + '" aria-label="Delete ' + esc(p.name || 'product') + '" title="Delete">×</button></td>' +
-    '</tr>').join('');
+  const z = viewSize(), ml = z ? z.ml : 0;
+  if (!S.perfumes.length) { $('prodBody').innerHTML = '<tr><td class="empty" colspan="13">No products yet. Add one with the form above.</td></tr>'; return; }
+  $('prodBody').innerHTML = S.perfumes.map((p, i) => {
+    const ob = own(p.bottleOv, ml), op = own(p.packOv, ml);
+    return '<tr data-row="' + i + '"' + (i === sel ? ' class="sel"' : '') + '>' +
+      '<td class="namec"><input class="name" id="pf-name-' + i + '" data-i="' + i + '" data-k="name" type="text" value="' + esc(p.name) + '" placeholder="Product name" aria-label="Product name"></td>' +
+      '<td class="supc"><input class="name" id="pf-supplier-' + i + '" data-i="' + i + '" data-k="supplier" type="text" value="' + esc(p.supplier) + '" placeholder="Supplier" aria-label="Supplier or note"></td>' +
+      '<td class="num">' + inp('rate', 'pf-oilPrice-' + i, i, 'oilPrice', p.oilPrice, 'Oil price') + '</td>' +
+      '<td class="num">' + inp('rate', 'pf-oilQty-' + i, i, 'oilQty', p.oilQty, 'Oil quantity in g or ml') + '</td>' +
+      '<td class="v cost" id="pc-oil-' + i + '"></td>' +
+      '<td class="v cost" id="pc-alc-' + i + '"></td>' +
+      '<td class="c"><input type="checkbox" id="pf-booster-' + i + '" data-i="' + i + '" data-k="booster"' + (p.booster ? ' checked' : '') + ' aria-label="Add booster to ' + esc(p.name || 'this product') + ' perfume"></td>' +
+      '<td id="pc-bq-' + i + '"></td><td id="pc-bp-' + i + '"></td>' +
+      '<td class="sm">' + inp('rate opt', 'pf-bottleOv-' + i, i, 'bottleOv', ob === null ? '' : ob, 'Bottle price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
+      '<td class="sm">' + inp('rate opt', 'pf-packOv-' + i, i, 'packOv', op === null ? '' : op, 'Packing price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
+      '<td class="tot" id="pc-total-' + i + '"></td>' +
+      '<td><button type="button" class="icon" data-del="' + i + '" aria-label="Delete ' + esc(p.name || 'product') + '" title="Delete">×</button></td>' +
+      '</tr>';
+  }).join('');
 }
-
-/* ---------- page 2: attar cost table ---------- */
 function renderAttarHead() {
-  const ml = attarViewMl();
+  const a = attarView(), ml = a ? a.ml : 0;
   $('attarHead').innerHTML = '<tr><th class="l">Product</th><th class="l">Supplier / note</th><th>Oil price<small>₹ for the qty</small></th><th>Oil qty<small>g / ml</small></th>' +
-    '<th>Oil per ml</th><th>Oil used</th><th class="tot">Total cost<small>' + qty.format(ml) + ' ml</small></th></tr>';
+    '<th>Oil<small>100% = ' + qty.format(ml) + ' ml</small></th><th class="c">Booster</th><th>Booster qty</th><th>Booster price</th>' +
+    '<th>Bottle price<small>₹ optional</small></th><th>Packing price<small>₹ optional</small></th><th class="tot">Total cost<small>' + qty.format(ml) + ' ml</small></th></tr>';
 }
 function renderAttar() {
-  $('attarBody').innerHTML = S.perfumes.length ? S.perfumes.map((p, i) =>
-    '<tr data-row="' + i + '"><td class="l" id="at-name-' + i + '"></td><td class="l note" id="at-sup-' + i + '"></td><td id="at-price-' + i + '"></td><td id="at-qty-' + i + '"></td>' +
-    '<td id="at-perml-' + i + '"></td><td id="at-used-' + i + '"></td><td class="tot" id="at-total-' + i + '"></td></tr>').join('')
-    : '<tr><td class="empty" colspan="7">No products yet.</td></tr>';
+  const a = attarView(), ml = a ? a.ml : 0;
+  $('attarBody').innerHTML = S.perfumes.length ? S.perfumes.map((p, i) => {
+    const ob = own(p.atBottleOv, ml), op = own(p.atPackOv, ml);
+    return '<tr data-row="' + i + '"' + (i === sel ? ' class="sel"' : '') + '>' +
+      '<td class="l" id="at-name-' + i + '"></td><td class="l note" id="at-sup-' + i + '"></td>' +
+      '<td class="num">' + inp('rate', 'at-oilPrice-' + i, i, 'oilPrice', p.oilPrice, 'Oil price') + '</td>' +
+      '<td class="num">' + inp('rate', 'at-oilQty-' + i, i, 'oilQty', p.oilQty, 'Oil quantity in g or ml') + '</td>' +
+      '<td class="v cost" id="ac-oil-' + i + '"></td>' +
+      '<td class="c"><input type="checkbox" id="at-booster-' + i + '" data-i="' + i + '" data-k="atBooster"' + (p.atBooster ? ' checked' : '') + ' aria-label="Add booster to ' + esc(p.name || 'this product') + ' attar"></td>' +
+      '<td id="ac-bq-' + i + '"></td><td id="ac-bp-' + i + '"></td>' +
+      '<td class="sm">' + inp('rate opt', 'at-bottleOv-' + i, i, 'atBottleOv', ob === null ? '' : ob, 'Attar bottle price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
+      '<td class="sm">' + inp('rate opt', 'at-packOv-' + i, i, 'atPackOv', op === null ? '' : op, 'Attar packing price for ' + esc(p.name) + ' ' + ml + ' ml') + '</td>' +
+      '<td class="tot" id="ac-total-' + i + '"></td></tr>';
+  }).join('') : '<tr><td class="empty" colspan="11">No products yet.</td></tr>';
 }
-
 function filterProducts() {
   const q = low($('prodSearch').value); let shown = 0;
   S.perfumes.forEach((p, i) => {
@@ -544,63 +595,63 @@ function filterProducts() {
 }
 
 /* ---------- page 2: rates ---------- */
+function sizeRows(list, prefix) {
+  return S[list].map((z, i) =>
+    '<tr><td><div class="unit" data-unit="ml"><input class="rate" id="' + prefix + '-ml-' + i + '" data-i="' + i + '" data-k="ml" type="number" inputmode="decimal" step="any" min="0" value="' + z.ml + '" aria-label="Size in ml"></div></td>' +
+    '<td><input class="rate" id="' + prefix + '-bottle-' + i + '" data-i="' + i + '" data-k="bottle" type="number" inputmode="decimal" step="any" min="0" value="' + z.bottle + '" aria-label="Standard bottle price for ' + z.ml + ' ml"></td>' +
+    '<td><input class="rate" id="' + prefix + '-packing-' + i + '" data-i="' + i + '" data-k="packing" type="number" inputmode="decimal" step="any" min="0" value="' + z.packing + '" aria-label="Standard packing price for ' + z.ml + ' ml"></td>' +
+    '<td>' + (S[list].length > 1 ? '<button type="button" class="icon" data-delsize="' + i + '" aria-label="Remove ' + z.ml + ' ml size" title="Remove size">×</button>' : '') + '</td></tr>').join('');
+}
 function renderRates() {
   $('alcPrice').value = S.alcPackPrice; $('alcQty').value = S.alcPackQty;
   $('boostPrice').value = S.boostPackPrice; $('boostQty').value = S.boostPackQty;
   $('boostDrops').value = S.boostDrops; $('dropsPerMl').value = S.dropsPerMl;
-  $('sizes-body').innerHTML = S.sizes.map((z, i) =>
-    '<tr><td><div class="unit" data-unit="ml"><input class="rate" id="sz-ml-' + i + '" data-i="' + i + '" data-k="ml" type="number" inputmode="decimal" step="any" min="0" value="' + z.ml + '" aria-label="Perfume bottle size in ml"></div></td>' +
-    '<td><input class="rate" id="sz-bottle-' + i + '" data-i="' + i + '" data-k="bottle" type="number" inputmode="decimal" step="any" min="0" value="' + z.bottle + '" aria-label="Bottle cost for ' + z.ml + ' ml"></td>' +
-    '<td><input class="rate" id="sz-packing-' + i + '" data-i="' + i + '" data-k="packing" type="number" inputmode="decimal" step="any" min="0" value="' + z.packing + '" aria-label="Packing cost for ' + z.ml + ' ml"></td>' +
-    '<td>' + (S.sizes.length > 1 ? '<button type="button" class="icon" data-delsize="' + i + '" aria-label="Remove ' + z.ml + ' ml perfume size" title="Remove size">×</button>' : '') + '</td></tr>').join('');
-  $('attar-body').innerHTML = S.attarSizes.map((ml, i) =>
-    '<tr><td><div class="unit" data-unit="ml"><input class="rate" id="at-ml-' + i + '" data-i="' + i + '" type="number" inputmode="decimal" step="any" min="0" value="' + ml + '" aria-label="Attar size in ml"></div></td>' +
-    '<td>' + (S.attarSizes.length > 1 ? '<button type="button" class="icon" data-delattar="' + i + '" aria-label="Remove ' + ml + ' ml attar size" title="Remove size">×</button>' : '') + '</td></tr>').join('');
+  $('sizes-body').innerHTML = sizeRows('sizes', 'sz');
+  $('attar-body').innerHTML = sizeRows('attarSizes', 'as');
   rateLabels();
-}
-function boostPerBottle() {
-  const ml = S.dropsPerMl ? S.boostDrops / S.dropsPerMl : 0;
-  const perG = S.boostPackQty ? S.boostPackPrice / S.boostPackQty : 0;
-  return { ml: ml, perG: perG, cost: ml * perG };
 }
 function rateLabels() {
   $('alcPerL').textContent = rupee(S.alcPackQty ? S.alcPackPrice / S.alcPackQty : 0) + ' per litre';
-  const b = boostPerBottle();
-  $('boostPerG').textContent = rupee(b.perG) + ' per g';
-  $('boostResult').innerHTML = qty.format(S.boostDrops) + ' drops = ' + qty.format(b.ml) + ' ml × ' + rupee(b.perG) + ' = <b>' + rupee(b.cost) + ' per bottle</b>, for every perfume size';
+  const ml = boosterMl(S), perG = boosterPerG(S);
+  $('boostPerG').textContent = rupee(perG) + ' per g';
+  $('boostResult').innerHTML = qty.format(S.boostDrops) + ' drops = ' + qty.format(ml) + ' ml × ' + rupee(perG) + ' = <b>' + rupee(ml * perG) + ' per bottle</b>';
 }
 
-/* ---------- refresh ---------- */
-function setText(id, html) { const el = $(id); if (el) el.innerHTML = html; }
-function update() {   // computed cells only, so typing keeps focus
-  const z = viewSize(), aml = attarViewMl();
+/* ---------- refresh (computed cells only, so typing keeps focus) ---------- */
+function setText(id, html, cls) { const el = $(id); if (!el) return; el.innerHTML = html; if (cls != null) el.className = cls; }
+function optState(id, isOwn, std) { const el = $(id); if (!el) return; el.classList.toggle('set', isOwn); el.placeholder = inr.format(std); el.title = isOwn ? 'Your own price. Clear it to use the standard ' + rupee(std) + '.' : 'Standard rate ' + rupee(std) + '. Type to set your own price.'; }
+function update() {
+  const z = viewSize(), a = attarView();
   S.perfumes.forEach((p, i) => {
     if (z) {
       const r = perfumePrice(p, z, S);
       setText('pc-oil-' + i, rupee(r.oilCost) + '<small>' + qty.format(r.oilMl) + ' ml × ' + rupee(r.oilPerMl) + '</small>');
       setText('pc-alc-' + i, rupee(r.alcCost) + '<small>' + qty.format(r.alcMl) + ' ml</small>');
-      setText('pc-bq-' + i, p.booster ? qty.format(S.boostDrops) + ' drops' : '–');
-      setText('pc-bp-' + i, p.booster ? rupee(r.boostCost) : '–');
-      setText('pc-bottle-' + i, rupee(r.bottle));
-      setText('pc-pack-' + i, rupee(r.packing));
+      setText('pc-bq-' + i, p.booster ? qty.format(S.boostDrops) + ' drops' : '–', p.booster ? 'cost' : 'off');
+      setText('pc-bp-' + i, p.booster ? rupee(r.boostCost) : '–', p.booster ? 'cost' : 'off');
+      optState('pf-bottleOv-' + i, r.ownBottle, z.bottle);
+      optState('pf-packOv-' + i, r.ownPacking, z.packing);
       setText('pc-total-' + i, rupee(r.total));
-      ['pc-bq-', 'pc-bp-'].forEach(k => { const el = $(k + i); if (el) el.className = p.booster ? 'cost' : 'off'; });
     }
-    const a = attarPrice(p, aml);
     setText('at-name-' + i, esc(p.name || 'Unnamed'));
     setText('at-sup-' + i, esc(p.supplier));
-    setText('at-price-' + i, rupee(p.oilPrice));
-    setText('at-qty-' + i, qty.format(p.oilQty));
-    setText('at-perml-' + i, rupee(a.oilPerMl));
-    setText('at-used-' + i, qty.format(aml) + ' ml');
-    setText('at-total-' + i, rupee(a.total));
+    if (a) {
+      const r = attarPrice(p, a, S);
+      setText('ac-oil-' + i, rupee(r.oilCost) + '<small>' + qty.format(r.oilMl) + ' ml × ' + rupee(r.oilPerMl) + '</small>');
+      setText('ac-bq-' + i, p.atBooster ? qty.format(S.boostDrops) + ' drops' : '–', p.atBooster ? 'cost' : 'off');
+      setText('ac-bp-' + i, p.atBooster ? rupee(r.boostCost) : '–', p.atBooster ? 'cost' : 'off');
+      optState('at-bottleOv-' + i, r.ownBottle, +a.bottle || 0);
+      optState('at-packOv-' + i, r.ownPacking, +a.packing || 0);
+      setText('ac-total-' + i, rupee(r.total));
+    }
   });
-  document.querySelectorAll('#prodBody tr[data-row]').forEach(tr => tr.classList.toggle('sel', +tr.dataset.row === sel));
+  document.querySelectorAll('#prodBody tr[data-row], #attarBody tr[data-row]').forEach(tr => tr.classList.toggle('sel', +tr.dataset.row === sel));
   renderPriceList();
 }
+function renderTables() { renderSeg(); renderProdHead(); renderProducts(); renderAttarHead(); renderAttar(); filterProducts(); update(); }
 function renderAll() {
   if (sel >= S.perfumes.length) sel = Math.max(0, S.perfumes.length - 1);
-  renderRates(); renderSeg(); renderProdHead(); renderProducts(); renderAttarHead(); renderAttar(); filterProducts(); update();
+  renderRates(); renderTables();
 }
 
 /* ---------- toast ---------- */
@@ -616,8 +667,8 @@ $('toastBtn').addEventListener('click', () => { if (undo) undo(); $('toast').hid
 async function copyList() {
   const at = attarCols();
   const lines = [['Product'].concat(S.sizes.map(z => 'Perfume ' + z.ml + ' ml'), at.map(z => 'Attar ' + z.ml + ' ml')).join('\t')];
-  S.perfumes.forEach(p => lines.push([p.name + (p.booster ? ' (booster)' : '')]
-    .concat(S.sizes.map(z => perfumePrice(p, z, S).total.toFixed(2)), at.map(z => attarPrice(p, z.ml).total.toFixed(2))).join('\t')));
+  S.perfumes.forEach(p => lines.push([p.name]
+    .concat(S.sizes.map(z => perfumePrice(p, z, S).total.toFixed(2)), at.map(z => attarPrice(p, z, S).total.toFixed(2))).join('\t')));
   const text = lines.join('\n');
   let ok = false;
   try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
@@ -630,14 +681,13 @@ async function copyList() {
 $('plSearch').addEventListener('input', renderPriceList);
 $('customAttar').addEventListener('input', renderPriceList);
 $('copyList').addEventListener('click', copyList);
-let scrollToRow = null;
 $('plBody').addEventListener('click', e => {
   const b = e.target.closest('[data-open]'); if (!b) return;
   sel = +b.dataset.open; $('prodSearch').value = ''; filterProducts(); update();
   scrollToRow = sel; location.hash = 'calculations';
 });
 
-/* ---------- events: page 2 ---------- */
+/* ---------- events: page 2 rates ---------- */
 function onRates() {
   S.alcPackPrice = num($('alcPrice').value); S.alcPackQty = num($('alcQty').value);
   S.boostPackPrice = num($('boostPrice').value); S.boostPackQty = num($('boostQty').value);
@@ -646,71 +696,77 @@ function onRates() {
 }
 ['alcPrice', 'alcQty', 'boostPrice', 'boostQty', 'boostDrops', 'dropsPerMl'].forEach(id => $(id).addEventListener('input', onRates));
 
-$('sizes-body').addEventListener('input', e => {
-  const t = e.target; if (!t.dataset.k) return;
-  const z = S.sizes[+t.dataset.i], v = num(t.value);
-  if (t.dataset.k === 'ml' && z.ml === S.pfView) S.pfView = v;
-  z[t.dataset.k] = v; save();
-  if (t.dataset.k === 'ml') { renderSeg(); renderProdHead(); }
-  update();
-});
-$('sizes-body').addEventListener('click', e => {
-  const b = e.target.closest('[data-delsize]'); if (!b) return;
-  const i = +b.dataset.delsize, removed = S.sizes.splice(i, 1)[0];
-  save(); renderAll();
-  toast('Removed ' + removed.ml + ' ml perfume size.', () => { S.sizes.splice(i, 0, removed); save(); renderAll(); });
+function moveOwn(keys, from, to) {   // keep typed prices with their size when a size is renamed
+  if (from === to) return;
+  S.perfumes.forEach(p => keys.forEach(k => {
+    const m = p[k]; if (!m || m[String(from)] == null) return;
+    if (m[String(to)] == null) m[String(to)] = m[String(from)];
+    delete m[String(from)];
+  }));
+}
+[['sizes', 'sizes-body', 'pfView', ['bottleOv', 'packOv'], 'perfume'], ['attarSizes', 'attar-body', 'atView', ['atBottleOv', 'atPackOv'], 'attar']].forEach(([list, body, view, keys, label]) => {
+  $(body).addEventListener('input', e => {
+    const t = e.target; if (!t.dataset.k) return;
+    const z = S[list][+t.dataset.i], v = num(t.value);
+    if (t.dataset.k === 'ml') { moveOwn(keys, z.ml, v); if (z.ml === S[view]) S[view] = v; }
+    z[t.dataset.k] = v; save();
+    if (t.dataset.k === 'ml') renderTables(); else update();
+  });
+  $(body).addEventListener('click', e => {
+    const b = e.target.closest('[data-delsize]'); if (!b) return;
+    const i = +b.dataset.delsize, removed = S[list].splice(i, 1)[0];
+    save(); renderAll();
+    toast('Removed ' + removed.ml + ' ml ' + label + ' size.', () => { S[list].splice(i, 0, removed); save(); renderAll(); });
+  });
 });
 $('addPfSize').addEventListener('click', () => {
   const last = S.sizes[S.sizes.length - 1] || { ml: 30, bottle: 0, packing: 0 };
   S.sizes.push({ ml: last.ml * 2, bottle: last.bottle, packing: last.packing });
   save(); renderAll();
-  const inp = $('sz-ml-' + (S.sizes.length - 1)); if (inp) { inp.focus(); inp.select(); }
+  const el = $('sz-ml-' + (S.sizes.length - 1)); if (el) { el.focus(); el.select(); }
 });
-$('attar-body').addEventListener('input', e => {
-  const t = e.target; if (t.dataset.i == null) return;
-  const i = +t.dataset.i, v = num(t.value);
-  if (S.attarSizes[i] === S.atView) S.atView = v;
-  S.attarSizes[i] = v; save(); renderSeg(); renderAttarHead(); update();
+$('addAtSize').addEventListener('click', () => {
+  const last = S.attarSizes[S.attarSizes.length - 1] || { ml: 3, bottle: 0, packing: 0 };
+  S.attarSizes.push({ ml: last.ml * 2, bottle: last.bottle, packing: last.packing });
+  save(); renderAll();
+  const el = $('as-ml-' + (S.attarSizes.length - 1)); if (el) { el.focus(); el.select(); }
 });
 
-/* size switches */
+/* ---------- events: size switches ---------- */
 $('pfSeg').addEventListener('click', e => {
   const b = e.target.closest('[data-ml]'); if (!b) return;
-  S.pfView = +b.dataset.ml; save(); renderSeg(); renderProdHead(); update();
+  S.pfView = +b.dataset.ml; save(); renderSeg(); renderProdHead(); renderProducts(); filterProducts(); update();
 });
 $('atSeg').addEventListener('click', e => {
   const b = e.target.closest('[data-ml]'); if (!b) return;
-  S.atView = +b.dataset.ml; $('atOther').value = ''; save(); renderSeg(); renderAttarHead(); update();
+  S.atView = +b.dataset.ml; $('atOther').value = ''; save(); renderSeg(); renderAttarHead(); renderAttar(); filterProducts(); update();
 });
-$('atOther').addEventListener('input', () => { renderSeg(); renderAttarHead(); update(); });
-$('attar-body').addEventListener('click', e => {
-  const b = e.target.closest('[data-delattar]'); if (!b) return;
-  const i = +b.dataset.delattar, removed = S.attarSizes.splice(i, 1)[0];
-  save(); renderAll();
-  toast('Removed ' + removed + ' ml attar size.', () => { S.attarSizes.splice(i, 0, removed); save(); renderAll(); });
-});
-$('addAtSize').addEventListener('click', () => {
-  const last = S.attarSizes[S.attarSizes.length - 1] || 3;
-  S.attarSizes.push(last * 2); save(); renderAll();
-  const inp = $('at-ml-' + (S.attarSizes.length - 1)); if (inp) { inp.focus(); inp.select(); }
-});
+$('atOther').addEventListener('input', () => { renderSeg(); renderAttarHead(); renderAttar(); filterProducts(); update(); });
 
-$('prodBody').addEventListener('input', e => {
+/* ---------- events: cost tables ---------- */
+function onRow(e) {
   const t = e.target, k = t.dataset.k; if (!k) return;
-  const p = S.perfumes[+t.dataset.i];
-  if (k === 'name') { p.name = t.value; }
-  else if (k === 'supplier') { p.supplier = t.value; }
-  else if (k === 'booster') { p.booster = t.checked; }
-  else { p[k] = num(t.value); }
+  const i = +t.dataset.i, p = S.perfumes[i];
+  if (k === 'name' || k === 'supplier') p[k] = t.value;
+  else if (k === 'booster' || k === 'atBooster') p[k] = t.checked;
+  else if (k === 'bottleOv' || k === 'packOv' || k === 'atBottleOv' || k === 'atPackOv') {
+    const z = (k === 'bottleOv' || k === 'packOv') ? viewSize() : attarView(); if (!z) return;
+    p[k] = p[k] || {};
+    if (t.value.trim() === '') delete p[k][String(z.ml)]; else p[k][String(z.ml)] = num(t.value);
+  } else {   // oilPrice / oilQty: shared by both tables
+    p[k] = num(t.value);
+    const twin = $((t.id.indexOf('pf-') === 0 ? 'at-' : 'pf-') + k + '-' + i);
+    if (twin && twin !== document.activeElement) twin.value = t.value;
+  }
   save(); update();
-});
-$('prodBody').addEventListener('change', e => {
-  const t = e.target; if (t.dataset.k !== 'booster') return;
-  S.perfumes[+t.dataset.i].booster = t.checked; save(); update();
-});
-$('prodBody').addEventListener('focusin', e => {
-  const tr = e.target.closest('tr[data-row]'); if (!tr) return;
-  if (+tr.dataset.row !== sel) { sel = +tr.dataset.row; update(); }
+}
+['prodBody', 'attarBody'].forEach(id => {
+  $(id).addEventListener('input', onRow);
+  $(id).addEventListener('change', e => { if (e.target.type === 'checkbox') onRow(e); });
+  $(id).addEventListener('focusin', e => {
+    const tr = e.target.closest('tr[data-row]'); if (!tr) return;
+    if (+tr.dataset.row !== sel) { sel = +tr.dataset.row; update(); }
+  });
 });
 $('prodBody').addEventListener('click', e => {
   const b = e.target.closest('[data-del]'); if (!b) return;
@@ -727,7 +783,7 @@ $('addForm').addEventListener('submit', e => {
   if (!(price > 0)) { msg.textContent = 'Type the oil price in ₹.'; $('newPrice').focus(); return; }
   if (!(q > 0)) { msg.textContent = 'Type the oil quantity (for example 250).'; $('newQty').focus(); return; }
   if (S.perfumes.some(p => low(p.name) === low(name))) { msg.textContent = name + ' is already in the list. Edit its rate in the table below, or use a different name.'; return; }
-  S.perfumes.push({ name: name, supplier: $('newSupplier').value.trim(), oilPrice: price, oilQty: q, booster: $('newBooster').checked });
+  S.perfumes.push(newProduct({ name: name, supplier: $('newSupplier').value.trim(), oilPrice: price, oilQty: q, booster: $('newBooster').checked }));
   sel = S.perfumes.length - 1; save();
   $('prodSearch').value = ''; renderAll(); msg.textContent = '';
   const p = S.perfumes[sel];
@@ -738,7 +794,7 @@ $('addForm').addEventListener('submit', e => {
 
 $('resetAll').addEventListener('click', () => {
   const before = clone(S);
-  S = clone(DEFAULTS); sel = 0; save(); $('prodSearch').value = ''; $('plSearch').value = ''; renderAll();
+  S = fresh(); sel = 0; save(); $('prodSearch').value = ''; $('plSearch').value = ''; renderAll();
   toast('Reset to the starting rates and product list.', () => { S = before; save(); renderAll(); });
 });
 
